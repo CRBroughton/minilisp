@@ -2,6 +2,7 @@
     "conventionalCommits.scopes": [
         "expressions",
         "env",
-        "printer"
+        "printer",
+        "lexer"
     ]
 }
