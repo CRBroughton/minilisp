@@ -1,4 +1,4 @@
-package minilisp
+package main
 
 import "testing"
 

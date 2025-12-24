@@ -1,6 +1,7 @@
 {
     "conventionalCommits.scopes": [
         "expressions",
-        "env"
+        "env",
+        "printer"
     ]
 }

@@ -1,4 +1,4 @@
-package minilisp
+package main
 
 type Env struct {
 	bindings map[string]*Expr

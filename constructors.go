@@ -1,4 +1,4 @@
-package minilisp
+package main
 
 type ExprType int
 
@@ -49,6 +49,10 @@ func makeSym(s string) *Expr {
 
 func cons(car, cdr *Expr) *Expr {
 	return &Expr{Type: Cons, Car: car, Cdr: cdr}
+}
+
+func makeBuiltin(fn func([]*Expr) *Expr) *Expr {
+	return &Expr{Type: Builtin, Fn: fn}
 }
 
 // some helpers Ill need for lists
