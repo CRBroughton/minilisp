@@ -12,7 +12,7 @@ func TestExprTypes(t *testing.T) {
 		{"true is Bool", trueExpr, Bool},
 		{"number is Number type", makeNum(42), Number},
 		{"symbol is Symbol type", makeSym("x"), Symbol},
-		{"cons is Cons type", cons(makeNum(1)), Cons},
+		{"cons is Cons type", cons(makeNum(1), nilExpr), Cons},
 	}
 
 	for _, tt := range tests {
