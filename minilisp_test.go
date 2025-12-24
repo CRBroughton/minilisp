@@ -46,3 +46,43 @@ func TestMakeNum(t *testing.T) {
 		}
 	}
 }
+
+func TestMakeSym(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"x", "x"},
+		{"+", "+"},
+		{"factorial", "factorial"},
+		{"my-var", "my-var"},
+	}
+
+	for _, tt := range tests {
+		expr := makeSym(tt.input)
+		if expr.Type != Symbol {
+			t.Errorf("makeSym(%q) type = %v, want Symbol", tt.input, expr.Type)
+		}
+		if expr.Sym != tt.want {
+			t.Errorf("makeSym(%q) = %q, want %q", tt.input, expr.Sym, tt.want)
+		}
+	}
+}
+
+func TestMakeSymSpecialCases(t *testing.T) {
+	tests := []struct {
+		input    string
+		wantType ExprType
+	}{
+		{"nil", Nil},
+		{"true", Bool},
+		{"false", Bool},
+	}
+
+	for _, tt := range tests {
+		expr := makeSym(tt.input)
+		if expr.Type != tt.wantType {
+			t.Errorf("makeSym(%q) type = %v, want %v", tt.input, expr.Type, tt.wantType)
+		}
+	}
+}

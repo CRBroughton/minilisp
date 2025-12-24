@@ -28,6 +28,7 @@ type Expr struct {
 
 var nilExpr = &Expr{Type: Nil}
 var trueExpr = &Expr{Type: Bool}
+var falseExpr = &Expr{Type: Bool}
 
 // Basic construtors for the various types
 func makeNum(n int) *Expr {
@@ -40,6 +41,9 @@ func makeSym(s string) *Expr {
 	}
 	if s == "true" {
 		return trueExpr
+	}
+	if s == "false" {
+		return falseExpr
 	}
 	return &Expr{Type: Symbol, Sym: s}
 }
