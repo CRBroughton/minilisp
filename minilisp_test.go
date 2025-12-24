@@ -23,3 +23,26 @@ func TestExprTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestMakeNum(t *testing.T) {
+	tests := []struct {
+		input int
+		want  int
+	}{
+		{0, 0},
+		{42, 42},
+		{-10, -10},
+		{999, 999},
+	}
+
+	for _, tt := range tests {
+		expr := makeNum(tt.input)
+		if expr.Type != Number {
+			t.Errorf("makeNum(%d) type = %v, want Number", tt.input, expr.Type)
+		}
+
+		if expr.Num != tt.want {
+			t.Errorf("makeNum(%d) = %d, want %d", tt.input, expr.Num, tt.want)
+		}
+	}
+}
