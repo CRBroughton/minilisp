@@ -3,6 +3,7 @@
         "expressions",
         "env",
         "printer",
-        "lexer"
+        "lexer",
+        "eval"
     ]
 }
