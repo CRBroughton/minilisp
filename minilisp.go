@@ -18,8 +18,8 @@ type Expr struct {
 	Type   ExprType
 	Num    int
 	Sym    string
-	Car    *Expr
-	Cdr    *Expr
+	Car    *Expr // head | first
+	Cdr    *Expr // tail | last
 	Fn     func([]*Expr) *Expr
 	Params *Expr
 	Body   *Expr
@@ -50,4 +50,24 @@ func makeSym(s string) *Expr {
 
 func cons(car, cdr *Expr) *Expr {
 	return &Expr{Type: Cons, Car: car, Cdr: cdr}
+}
+
+// some helpers Ill need for lists
+
+func list(exprs ...*Expr) *Expr {
+	result := nilExpr
+
+	for i := len(exprs) - 1; i >= 0; i-- {
+		result = cons(exprs[i], result)
+	}
+	return result
+}
+
+func listToSlice(e *Expr) []*Expr {
+	var result []*Expr
+	for e != nilExpr && e.Type == Cons {
+		result = append(result, e.Car)
+		e = e.Cdr
+	}
+	return result
 }

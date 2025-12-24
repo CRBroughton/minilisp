@@ -86,3 +86,58 @@ func TestMakeSymSpecialCases(t *testing.T) {
 		}
 	}
 }
+
+func TestCons(t *testing.T) {
+	car := makeNum(1)
+	cdr := makeNum(2)
+	pair := cons(car, cdr)
+
+	if pair.Type != Cons {
+		t.Errorf("cons type = %v, want Cons", pair.Type)
+	}
+	if pair.Car != car {
+		t.Errorf("cons car = %v, want %v", pair.Car, car)
+	}
+	if pair.Cdr != cdr {
+		t.Errorf("cons cdr = %v, want %v", pair.Cdr, cdr)
+	}
+}
+
+func TestList(t *testing.T) {
+	lst := list(makeNum(1), makeNum(2), makeNum(3))
+
+	if lst.Type != Cons {
+		t.Fatalf("list type = %v, want Cons", lst.Type)
+	}
+	if lst.Car.Type != Number || lst.Car.Num != 1 {
+		t.Errorf("first element = %v, want 1", lst.Car)
+	}
+	if lst.Cdr.Car.Num != 2 {
+		t.Errorf("second element = %v, want 2", lst.Cdr.Car)
+	}
+	if lst.Cdr.Cdr.Car.Num != 3 {
+		t.Errorf("third element = %v, want 3", lst.Cdr.Cdr.Car)
+	}
+	if lst.Cdr.Cdr.Cdr != nilExpr {
+		t.Errorf("list should terminate with nil")
+	}
+}
+
+func TestListToSlice(t *testing.T) {
+	lst := list(makeNum(1), makeNum(2), makeNum(3))
+	slice := listToSlice(lst)
+
+	if len(slice) != 3 {
+		t.Fatalf("listToSlice length = %d, want 3", len(slice))
+	}
+	if slice[0].Num != 1 || slice[1].Num != 2 || slice[2].Num != 3 {
+		t.Errorf("listToSlice values incorrect")
+	}
+}
+
+func TestListToSliceEmpty(t *testing.T) {
+	slice := listToSlice(nilExpr)
+	if len(slice) != 0 {
+		t.Errorf("listToSlice(nil) length = %d, want 0", len(slice))
+	}
+}
