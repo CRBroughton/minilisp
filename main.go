@@ -25,4 +25,21 @@ func main() {
 	expr = readStr(input)
 	output := printExpr(expr)
 	fmt.Println(output)
+
+	// eval
+	env := NewEnv(nil)
+	// Numbers evaluate to themselves
+	result := eval(makeNum(42), env)
+	fmt.Println(printExpr(result)) // "42"
+
+	// Define and lookup variables
+	env.Define("x", makeNum(10))
+	result = eval(makeSym("x"), env)
+	fmt.Println(printExpr(result)) // "10"
+
+	// Nested scoping works
+	child := NewEnv(env)
+	child.Define("y", makeNum(20))
+	result = eval(makeSym("x"), child) // Finds x in parent
+	fmt.Println(printExpr(result))     // "10"
 }
