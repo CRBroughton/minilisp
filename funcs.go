@@ -18,3 +18,11 @@ func builtinSub(args []*Expr) *Expr {
 	}
 	return makeNum(result)
 }
+
+func builtinMul(args []*Expr) *Expr {
+	result := 1
+	for _, args := range args {
+		result *= args.Num
+	}
+	return makeNum(result)
+}
