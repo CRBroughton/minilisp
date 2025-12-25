@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func builtinAdd(args []*Expr) *Expr {
 	sum := 0
 	for _, arg := range args {
@@ -74,4 +76,16 @@ func builtinCar(args []*Expr) *Expr {
 
 func builtinCdr(args []*Expr) *Expr {
 	return args[0].Cdr
+}
+
+func builtinNullP(args []*Expr) *Expr {
+	if args[0] == nilExpr {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+func builtinPrint(args []*Expr) *Expr {
+	fmt.Println(printExpr(args[0]))
+	return args[0]
 }

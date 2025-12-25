@@ -196,3 +196,67 @@ func TestBuiltinCdr(t *testing.T) {
 		t.Errorf("cdr = %d, want 2", result.Num)
 	}
 }
+
+func TestBuiltinNullP(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("null?", makeBuiltin(builtinNullP))
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(null? nil)", true},
+		{"(null? 42)", false},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
+
+func TestEvalList(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("x", makeNum(10))
+	env.Define("y", makeNum(20))
+
+	// Evaluate (x y) should give [10, 20]
+	lst := list(makeSym("x"), makeSym("y"))
+	results := evalList(lst, env)
+
+	if len(results) != 2 {
+		t.Fatalf("evalList length = %d, want 2", len(results))
+	}
+	if results[0].Num != 10 || results[1].Num != 20 {
+		t.Errorf("evalList = [%d, %d], want [10, 20]", results[0].Num, results[1].Num)
+	}
+}
+
+func TestComplexArithmetic(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("*", makeBuiltin(builtinMul))
+	env.Define("-", makeBuiltin(builtinSub))
+
+	tests := []struct {
+		input string
+		want  int
+	}{
+		{"(+ (* 2 3) (* 4 5))", 26}, // (+ 6 20) = 26
+		{"(+ 1 (+ 2 (+ 3 4)))", 10}, // 1 + 2 + 3 + 4
+		{"(- (+ 10 5) (* 2 3))", 9}, // 15 - 6
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+		if result.Num != tt.want {
+			t.Errorf("%s = %d, want %d", tt.input, result.Num, tt.want)
+		}
+	}
+}
