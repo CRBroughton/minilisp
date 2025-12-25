@@ -78,3 +78,25 @@ func TestBuiltinMul(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinDiv(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("/", makeBuiltin(builtinDiv))
+
+	tests := []struct {
+		input string
+		want  int
+	}{
+		{"(/ 10 2)", 5},
+		{"(/ 100 10)", 10},
+		{"(/ 7 2)", 3}, // Integer division
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+		if result.Num != tt.want {
+			t.Errorf("%s = %d, want %d", tt.input, result.Num, tt.want)
+		}
+	}
+}
