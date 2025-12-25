@@ -56,3 +56,10 @@ func builtinEq(args []*Expr) *Expr {
 	}
 	return nilExpr
 }
+
+func builtinLt(args []*Expr) *Expr {
+	if args[0].Num < args[1].Num {
+		return trueExpr
+	}
+	return nilExpr
+}
