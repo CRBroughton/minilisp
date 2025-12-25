@@ -54,3 +54,27 @@ func TestBuiltinSub(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinMul(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("*", makeBuiltin(builtinMul))
+
+	tests := []struct {
+		input string
+		want  int
+	}{
+		{"(* 2 3)", 6},
+		{"(* 2 3 4)", 24},
+		{"(* 5)", 5},
+		{"(* 10 0)", 0},
+		{"(* -2 3)", -6},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+		if result.Num != tt.want {
+			t.Errorf("%s = %d, want %d", tt.input, result.Num, tt.want)
+		}
+	}
+}
