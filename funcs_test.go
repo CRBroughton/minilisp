@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestBuildinAdd(t *testing.T) {
+func TestBuiltinAdd(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("+", makeBuiltin(builtinAdd))
 
@@ -28,6 +28,5 @@ func TestBuildinAdd(t *testing.T) {
 		if result.Num != tt.want {
 			t.Errorf("%s = %d, want %d", tt.input, result.Num, tt.want)
 		}
-
 	}
 }
