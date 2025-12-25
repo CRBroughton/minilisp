@@ -59,6 +59,8 @@ func builtinEq(args []*Expr) *Expr {
 	return nilExpr
 }
 
+// TODO - implement Gt function, also
+// maybe not nil for falsey?
 func builtinLt(args []*Expr) *Expr {
 	if args[0].Num < args[1].Num {
 		return trueExpr

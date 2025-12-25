@@ -48,4 +48,8 @@ func main() {
 
 	result = eval(readStr("(+ (* 2 3) (* 4 5))"), env)
 	fmt.Println(printExpr(result)) // "26"
+
+	env.Define("<", makeBuiltin(builtinLt))
+	result = eval(readStr("(< 3 10)"), env)
+	fmt.Println(printExpr(result)) // "26"
 }
