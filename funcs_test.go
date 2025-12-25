@@ -170,3 +170,29 @@ func TestBuiltinCons(t *testing.T) {
 		t.Errorf("cdr = %d, want 2", result.Cdr.Num)
 	}
 }
+
+func TestBuiltinCar(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("car", makeBuiltin(builtinCar))
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	expr := readStr("(car (cons 1 2))")
+	result := eval(expr, env)
+
+	if result.Num != 1 {
+		t.Errorf("car = %d, want 1", result.Num)
+	}
+}
+
+func TestBuiltinCdr(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cdr", makeBuiltin(builtinCdr))
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	expr := readStr("(cdr (cons 1 2))")
+	result := eval(expr, env)
+
+	if result.Num != 2 {
+		t.Errorf("cdr = %d, want 2", result.Num)
+	}
+}

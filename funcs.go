@@ -67,3 +67,11 @@ func builtinLt(args []*Expr) *Expr {
 func builtinCons(args []*Expr) *Expr {
 	return cons(args[0], args[1])
 }
+
+func builtinCar(args []*Expr) *Expr {
+	return args[0].Car
+}
+
+func builtinCdr(args []*Expr) *Expr {
+	return args[0].Cdr
+}
