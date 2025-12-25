@@ -30,3 +30,27 @@ func TestBuiltinAdd(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinSub(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("-", makeBuiltin(builtinSub))
+
+	tests := []struct {
+		input string
+		want  int
+	}{
+		{"(- 10 5)", 5},
+		{"(- 100 50 25)", 25},
+		{"(- 0 10)", -10},
+		{"(- 5 5)", 0},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		if result.Num != tt.want {
+			t.Errorf("%s = %d, want %d", tt.input, result.Num, tt.want)
+		}
+	}
+}
