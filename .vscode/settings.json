@@ -4,6 +4,7 @@
         "env",
         "printer",
         "lexer",
-        "eval"
+        "eval",
+        "funcs"
     ]
 }
