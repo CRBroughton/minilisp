@@ -51,5 +51,5 @@ func main() {
 
 	env.Define("<", makeBuiltin(builtinLt))
 	result = eval(readStr("(< 3 10)"), env)
-	fmt.Println(printExpr(result)) // "26"
+	fmt.Println(printExpr(result)) // "true"
 }
