@@ -26,3 +26,7 @@ func builtinMul(args []*Expr) *Expr {
 	}
 	return makeNum(result)
 }
+
+func builtinDiv(args []*Expr) *Expr {
+	return makeNum(args[0].Num / args[1].Num)
+}
