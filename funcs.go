@@ -63,3 +63,7 @@ func builtinLt(args []*Expr) *Expr {
 	}
 	return nilExpr
 }
+
+func builtinCons(args []*Expr) *Expr {
+	return cons(args[0], args[1])
+}

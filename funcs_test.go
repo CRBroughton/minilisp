@@ -152,3 +152,21 @@ func TestBuiltinLt(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinCons(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	expr := readStr("(cons 1 2)")
+	result := eval(expr, env)
+
+	if result.Type != Cons {
+		t.Fatalf("cons result type = %v, want Cons", result.Type)
+	}
+	if result.Car.Num != 1 {
+		t.Errorf("car = %d, want 1", result.Car.Num)
+	}
+	if result.Cdr.Num != 2 {
+		t.Errorf("cdr = %d, want 2", result.Cdr.Num)
+	}
+}
