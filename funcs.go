@@ -30,3 +30,29 @@ func builtinMul(args []*Expr) *Expr {
 func builtinDiv(args []*Expr) *Expr {
 	return makeNum(args[0].Num / args[1].Num)
 }
+
+func builtinEq(args []*Expr) *Expr {
+	a, b := args[0], args[1]
+
+	if a.Type != b.Type {
+		return nilExpr
+	}
+
+	switch a.Type {
+	case Number:
+		if a.Num == b.Num {
+			return trueExpr
+		}
+	case Symbol:
+		if a.Sym == b.Sym {
+			return trueExpr
+		}
+	case Nil:
+		return trueExpr
+	default:
+		if a == b {
+			return trueExpr
+		}
+	}
+	return nilExpr
+}
