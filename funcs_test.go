@@ -100,3 +100,29 @@ func TestBuiltinDiv(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinEq(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("=", makeBuiltin(builtinEq))
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(= 5 5)", true},
+		{"(= 5 6)", false},
+		{"(= 0 0)", true},
+		{"(= -5 -5)", true},
+		{"(= 10 5)", false},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
