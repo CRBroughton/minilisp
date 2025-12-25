@@ -42,4 +42,10 @@ func main() {
 	child.Define("y", makeNum(20))
 	result = eval(makeSym("x"), child) // Finds x in parent
 	fmt.Println(printExpr(result))     // "10"
+
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("*", makeBuiltin(builtinMul))
+
+	result = eval(readStr("(+ (* 2 3) (* 4 5))"), env)
+	fmt.Println(printExpr(result)) // "26"
 }
