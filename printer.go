@@ -44,8 +44,8 @@ func printList(e *Expr) string {
 
 	// Collect all elements
 	for e != nilExpr && e.Type == Cons {
-		parts = append(parts, printExpr(e.Car))
-		e = e.Cdr
+		parts = append(parts, printExpr(e.Head))
+		e = e.Tail
 	}
 
 	// Check if we have an improper list (1 . 2)

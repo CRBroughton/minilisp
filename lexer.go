@@ -92,9 +92,9 @@ func (r *Reader) readList() *Expr {
 	}
 
 	// Read elements until )
-	car := r.readExpr()
-	cdr := r.readList()
-	return cons(car, cdr)
+	head := r.readExpr()
+	tail := r.readList()
+	return cons(head, tail)
 }
 
 func (r *Reader) readNumber() *Expr {

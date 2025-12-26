@@ -17,8 +17,8 @@ type Expr struct {
 	Type   ExprType
 	Num    int
 	Sym    string
-	Car    *Expr // head | first
-	Cdr    *Expr // tail | last
+	Head    *Expr // head | first
+	Tail    *Expr // tail | last
 	Fn     func([]*Expr) *Expr
 	Params *Expr
 	Body   *Expr
@@ -47,8 +47,8 @@ func makeSym(s string) *Expr {
 	return &Expr{Type: Symbol, Sym: s}
 }
 
-func cons(car, cdr *Expr) *Expr {
-	return &Expr{Type: Cons, Car: car, Cdr: cdr}
+func cons(head, tail *Expr) *Expr {
+	return &Expr{Type: Cons, Head: head, Tail: tail}
 }
 
 func makeBuiltin(fn func([]*Expr) *Expr) *Expr {
@@ -73,8 +73,8 @@ func list(exprs ...*Expr) *Expr {
 func listToSlice(e *Expr) []*Expr {
 	var result []*Expr
 	for e != nilExpr && e.Type == Cons {
-		result = append(result, e.Car)
-		e = e.Cdr
+		result = append(result, e.Head)
+		e = e.Tail
 	}
 	return result
 }

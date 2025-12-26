@@ -72,12 +72,12 @@ func builtinCons(args []*Expr) *Expr {
 	return cons(args[0], args[1])
 }
 
-func builtinCar(args []*Expr) *Expr {
-	return args[0].Car
+func builtinHead(args []*Expr) *Expr {
+	return args[0].Head
 }
 
-func builtinCdr(args []*Expr) *Expr {
-	return args[0].Cdr
+func builtinTail(args []*Expr) *Expr {
+	return args[0].Tail
 }
 
 func builtinNullP(args []*Expr) *Expr {

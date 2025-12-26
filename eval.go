@@ -6,8 +6,8 @@ import "fmt"
 func evalList(list *Expr, env *Env) []*Expr {
 	var result []*Expr
 	for list != nilExpr && list.Type == Cons {
-		result = append(result, eval(list.Car, env))
-		list = list.Cdr
+		result = append(result, eval(list.Head, env))
+		list = list.Tail
 	}
 	return result
 }
@@ -17,7 +17,7 @@ func macroexpand(e *Expr, env *Env) *Expr {
 		return e
 	}
 
-	op := e.Car
+	op := e.Head
 	if op.Type != Symbol {
 		return e
 	}
@@ -29,7 +29,7 @@ func macroexpand(e *Expr, env *Env) *Expr {
 	}
 
 	// Apply macro to unevaluated arguments
-	args := listToSlice(e.Cdr)
+	args := listToSlice(e.Tail)
 	newEnv := NewEnv(val.Env)
 
 	// Bind parameters to unevaluated arguments
@@ -38,8 +38,8 @@ func macroexpand(e *Expr, env *Env) *Expr {
 		if params == nilExpr {
 			panic("macro: too many arguments")
 		}
-		newEnv.Define(params.Car.Sym, arg)
-		params = params.Cdr
+		newEnv.Define(params.Head.Sym, arg)
+		params = params.Tail
 	}
 
 	// Evaluate macro body to get new code
@@ -67,38 +67,38 @@ func eval(e *Expr, env *Env) *Expr {
 			return eval(e, env)
 		}
 
-		op := e.Car
-		args := e.Cdr
+		op := e.Head
+		args := e.Tail
 
 		if op.Type == Symbol {
 			switch op.Sym {
 			case "quote":
 				// (quote x) → x (unevaluated)
-				return args.Car
+				return args.Head
 			case "if":
-				cond := eval(args.Car, env)
+				cond := eval(args.Head, env)
 				if cond != nilExpr {
-					return eval(args.Cdr.Car, env)
+					return eval(args.Tail.Head, env)
 				}
-				return eval(args.Cdr.Cdr.Car, env)
+				return eval(args.Tail.Tail.Head, env)
 			case "define":
-				sym := args.Car
-				val := eval(args.Cdr.Car, env)
+				sym := args.Head
+				val := eval(args.Tail.Head, env)
 				env.Define(sym.Sym, val)
 				return val
 			case "macro":
-				params := args.Car
-				body := args.Cdr.Car
+				params := args.Head
+				body := args.Tail.Head
 				return makeLambda(params, body, env, Macro)
 			case "lambda":
-				params := args.Car
-				body := args.Cdr.Car
+				params := args.Head
+				body := args.Tail.Head
 				return makeLambda(params, body, env, Lambda)
 			case "begin":
 				var result *Expr = nilExpr
 				for args != nilExpr {
-					result = eval(args.Car, env)
-					args = args.Cdr
+					result = eval(args.Head, env)
+					args = args.Tail
 				}
 				return result
 			}
@@ -119,8 +119,8 @@ func eval(e *Expr, env *Env) *Expr {
 				if params == nilExpr {
 					panic("too many arguments")
 				}
-				newEnv.Define(params.Car.Sym, arg)
-				params = params.Cdr
+				newEnv.Define(params.Head.Sym, arg)
+				params = params.Tail
 			}
 			return eval(fn.Body, newEnv)
 		}

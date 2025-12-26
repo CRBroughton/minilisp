@@ -88,8 +88,8 @@ func TestCompleteProgram(t *testing.T) {
 
 		; Define let macro
 		(defmacro let (bindings body)
-			(cons (cons 'lambda (cons (cons (car (car bindings)) nil) (cons body nil)))
-				(cons (car (cdr (car bindings))) nil)))
+			(cons (cons 'lambda (cons (cons (head (head bindings)) nil) (cons body nil)))
+				(cons (head (tail (head bindings))) nil)))
 
 		; Use let to compute something
 		(let ((x 10)) (+ (* x 2) 5))
@@ -118,8 +118,8 @@ func setupFullEnv() *Env {
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
 	env.Define("cons", makeBuiltin(builtinCons))
-	env.Define("car", makeBuiltin(builtinCar))
-	env.Define("cdr", makeBuiltin(builtinCdr))
+	env.Define("head", makeBuiltin(builtinHead))
+	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("null?", makeBuiltin(builtinNullP))
 	env.Define("print", makeBuiltin(builtinPrint))
 	return env

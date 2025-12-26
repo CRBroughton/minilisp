@@ -163,37 +163,37 @@ func TestBuiltinCons(t *testing.T) {
 	if result.Type != Cons {
 		t.Fatalf("cons result type = %v, want Cons", result.Type)
 	}
-	if result.Car.Num != 1 {
-		t.Errorf("car = %d, want 1", result.Car.Num)
+	if result.Head.Num != 1 {
+		t.Errorf("head = %d, want 1", result.Head.Num)
 	}
-	if result.Cdr.Num != 2 {
-		t.Errorf("cdr = %d, want 2", result.Cdr.Num)
+	if result.Tail.Num != 2 {
+		t.Errorf("tail = %d, want 2", result.Tail.Num)
 	}
 }
 
-func TestBuiltinCar(t *testing.T) {
+func TestBuiltinHead(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("car", makeBuiltin(builtinCar))
+	env.Define("head", makeBuiltin(builtinHead))
 	env.Define("cons", makeBuiltin(builtinCons))
 
-	expr := readStr("(car (cons 1 2))")
+	expr := readStr("(head (cons 1 2))")
 	result := eval(expr, env)
 
 	if result.Num != 1 {
-		t.Errorf("car = %d, want 1", result.Num)
+		t.Errorf("head = %d, want 1", result.Num)
 	}
 }
 
-func TestBuiltinCdr(t *testing.T) {
+func TestBuiltinTail(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cdr", makeBuiltin(builtinCdr))
+	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("cons", makeBuiltin(builtinCons))
 
-	expr := readStr("(cdr (cons 1 2))")
+	expr := readStr("(tail (cons 1 2))")
 	result := eval(expr, env)
 
 	if result.Num != 2 {
-		t.Errorf("cdr = %d, want 2", result.Num)
+		t.Errorf("tail = %d, want 2", result.Num)
 	}
 }
 

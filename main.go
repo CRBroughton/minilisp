@@ -19,8 +19,8 @@ func main() {
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
 	env.Define("cons", makeBuiltin(builtinCons))
-	env.Define("car", makeBuiltin(builtinCar))
-	env.Define("cdr", makeBuiltin(builtinCdr))
+	env.Define("head", makeBuiltin(builtinHead))
+	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("null?", makeBuiltin(builtinNullP))
 	env.Define("print", makeBuiltin(builtinPrint))
 

@@ -701,8 +701,8 @@ func TestOrMacro(t *testing.T) {
 func TestLetMacro(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("+", makeBuiltin(builtinAdd))
-	env.Define("car", makeBuiltin(builtinCar))
-	env.Define("cdr", makeBuiltin(builtinCdr))
+	env.Define("head", makeBuiltin(builtinHead))
+	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("cons", makeBuiltin(builtinCons))
 
 	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
@@ -712,9 +712,9 @@ func TestLetMacro(t *testing.T) {
 	letMacro := `
 		(defmacro let (bindings body)
 			(cons (cons 'lambda
-					(cons (cons (car (car bindings)) nil)
+					(cons (cons (head (head bindings)) nil)
 						(cons body nil)))
-				(cons (car (cdr (car bindings))) nil)))
+				(cons (head (tail (head bindings))) nil)))
 	`
 	eval(readStr(letMacro), env)
 
