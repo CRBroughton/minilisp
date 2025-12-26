@@ -23,8 +23,8 @@ func builtinSub(args []*Expr) *Expr {
 
 func builtinMul(args []*Expr) *Expr {
 	result := 1
-	for _, args := range args {
-		result *= args.Num
+	for _, arg := range args {
+		result *= arg.Num
 	}
 	return makeNum(result)
 }
