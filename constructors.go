@@ -17,8 +17,8 @@ type Expr struct {
 	Type   ExprType
 	Num    int
 	Sym    string
-	Head    *Expr // head | first
-	Tail    *Expr // tail | last
+	Head   *Expr // head | first
+	Tail   *Expr // tail | last
 	Fn     func([]*Expr) *Expr
 	Params *Expr
 	Body   *Expr
