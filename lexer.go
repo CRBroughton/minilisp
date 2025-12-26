@@ -56,6 +56,10 @@ func (r *Reader) readExpr() *Expr {
 		return nilExpr
 	}
 
+	if ch == '"' {
+		return r.readStr()
+	}
+
 	// Quote sugar: 'x → (quote x)
 	if ch == '\'' {
 		r.next()
@@ -80,6 +84,27 @@ func (r *Reader) readExpr() *Expr {
 
 	// Symbol: x, +, factorial
 	return r.readSymbol()
+}
+
+func (r *Reader) readStr() *Expr {
+	r.next() // skip the opening quote
+	start := r.pos
+
+	for {
+		ch := r.peek()
+		if ch == 0 {
+			panic("unterminated string")
+		}
+		if ch == '"' {
+			break
+		}
+		// TODO - Handle escape sequences
+		r.next()
+	}
+	str := r.input[start:r.pos]
+	r.next()
+	return makeStr(str)
+
 }
 
 func (r *Reader) readList() *Expr {

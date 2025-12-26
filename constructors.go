@@ -6,6 +6,7 @@ const (
 	Nil     ExprType = "Nil"
 	Bool    ExprType = "Bool"
 	Number  ExprType = "Number"
+	String  ExprType = "String"
 	Symbol  ExprType = "Symbol"
 	Pair    ExprType = "Pair"
 	Builtin ExprType = "Builtin"
@@ -17,6 +18,7 @@ type Expr struct {
 	Type   ExprType
 	Num    int
 	Sym    string
+	Str    string
 	Head   *Expr // head | first
 	Tail   *Expr // tail | last
 	Fn     func([]*Expr) *Expr
@@ -32,6 +34,10 @@ var falseExpr = &Expr{Type: Bool}
 // Basic construtors for the various types
 func makeNum(n int) *Expr {
 	return &Expr{Type: Number, Num: n}
+}
+
+func makeStr(s string) *Expr {
+	return &Expr{Type: String, Str: s}
 }
 
 func makeSym(s string) *Expr {

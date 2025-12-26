@@ -222,3 +222,107 @@ func TestReadComplexExpression(t *testing.T) {
 		t.Errorf("round-trip failed:\noriginal:  %s\nreparsed: %s", printed, printed2)
 	}
 }
+
+func TestReadString(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{`"hello"`, "hello"},
+		{`"world"`, "world"},
+		{`""`, ""},
+		{`"hello world"`, "hello world"},
+		{`"std.lisp"`, "std.lisp"},
+		{`"/path/to/file.lisp"`, "/path/to/file.lisp"},
+		{`"with-dashes"`, "with-dashes"},
+		{`"with_underscores"`, "with_underscores"},
+		{`"123"`, "123"},
+		{`"symbols: + - * /"`, "symbols: + - * /"},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		if expr.Type != String {
+			t.Errorf("readStr(%q) type = %v, want String", tt.input, expr.Type)
+		}
+		if expr.Str != tt.want {
+			t.Errorf("readStr(%q) = %q, want %q", tt.input, expr.Str, tt.want)
+		}
+	}
+}
+
+func TestReadStringInList(t *testing.T) {
+	// (load "file.lisp")
+	expr := readStr(`(load "file.lisp")`)
+
+	if expr.Type != Pair {
+		t.Fatalf("type = %v, want Pair", expr.Type)
+	}
+
+	elems := listToSlice(expr)
+	if len(elems) != 2 {
+		t.Fatalf("length = %d, want 2", len(elems))
+	}
+
+	// First element: load (symbol)
+	if elems[0].Type != Symbol || elems[0].Sym != "load" {
+		t.Errorf("first element = %v (type %v), want symbol 'load'", elems[0].Sym, elems[0].Type)
+	}
+
+	// Second element: "file.lisp" (string)
+	if elems[1].Type != String || elems[1].Str != "file.lisp" {
+		t.Errorf("second element = %q (type %v), want string \"file.lisp\"", elems[1].Str, elems[1].Type)
+	}
+}
+
+func TestReadMultipleStrings(t *testing.T) {
+	// (print "hello" "world")
+	expr := readStr(`(print "hello" "world")`)
+
+	elems := listToSlice(expr)
+	if len(elems) != 3 {
+		t.Fatalf("length = %d, want 3", len(elems))
+	}
+
+	if elems[0].Sym != "print" {
+		t.Errorf("first = %v, want 'print'", elems[0])
+	}
+
+	if elems[1].Type != String || elems[1].Str != "hello" {
+		t.Errorf("second = %q (type %v), want \"hello\"", elems[1].Str, elems[1].Type)
+	}
+
+	if elems[2].Type != String || elems[2].Str != "world" {
+		t.Errorf("third = %q (type %v), want \"world\"", elems[2].Str, elems[2].Type)
+	}
+}
+
+func TestReadStringWithWhitespace(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{`  "hello"  `, "hello"},
+		{"\n\"test\"\n", "test"},
+		{`(  "spaced"  )`, "spaced"},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+
+		// Extract string from list if needed
+		var str *Expr
+		if expr.Type == Pair {
+			str = listToSlice(expr)[0]
+		} else {
+			str = expr
+		}
+
+		if str.Type != String {
+			t.Errorf("readStr(%q) type = %v, want String", tt.input, str.Type)
+		}
+		if str.Str != tt.want {
+			t.Errorf("readStr(%q) = %q, want %q", tt.input, str.Str, tt.want)
+		}
+	}
+}
