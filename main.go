@@ -1,8 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
 
-func main() {
+func oldMain() {
 	// Print simple values
 	fmt.Println(printExpr(makeNum(42)))  // "42"
 	fmt.Println(printExpr(makeSym("x"))) // "x"
@@ -95,4 +100,80 @@ func main() {
 	eval(readStr("(define factorial (lambda (n) (if (= n 0) 1 (* n (factorial (- n 1))))))"), env)
 	result = eval(readStr("(factorial 5)"), env)
 	fmt.Println(printExpr(result)) // 120
+}
+
+func main() {
+	// Create global environment
+	env := NewEnv(nil)
+
+	// Define built-ins
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("-", makeBuiltin(builtinSub))
+	env.Define("*", makeBuiltin(builtinMul))
+	env.Define("/", makeBuiltin(builtinDiv))
+	env.Define("=", makeBuiltin(builtinEq))
+	env.Define("<", makeBuiltin(builtinLt))
+	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("car", makeBuiltin(builtinCar))
+	env.Define("cdr", makeBuiltin(builtinCdr))
+	env.Define("null?", makeBuiltin(builtinNullP))
+	env.Define("print", makeBuiltin(builtinPrint))
+
+	// Bootstrap defmacro
+	defmacroCode := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	eval(readStr(defmacroCode), env)
+
+	// Check if input is from pipe/file or interactive
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		// Piped input - read all at once
+		input := readAllInput()
+		exprs := readMultipleExprs(input)
+
+		for _, expr := range exprs {
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Printf("Error: %v\n", r)
+					}
+				}()
+				result := eval(expr, env)
+				_ = result // Don't print unless using print
+			}()
+		}
+	} else {
+		// Interactive REPL
+		fmt.Println("MiniLisp - Type expressions (Ctrl+D to exit)")
+		scanner := bufio.NewScanner(os.Stdin)
+
+		for {
+			fmt.Print("> ")
+			if !scanner.Scan() {
+				break
+			}
+
+			line := scanner.Text()
+			line = strings.TrimSpace(line)
+
+			// Skip empty lines and comments
+			if line == "" || strings.HasPrefix(line, ";") {
+				continue
+			}
+
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Printf("Error: %v\n", r)
+					}
+				}()
+
+				expr := readStr(line)
+				if expr == nilExpr {
+					return
+				}
+				result := eval(expr, env)
+				fmt.Println(printExpr(result))
+			}()
+		}
+	}
 }
