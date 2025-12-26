@@ -5,6 +5,7 @@
         "printer",
         "lexer",
         "eval",
-        "funcs"
+        "funcs",
+        "repl"
     ]
 }
