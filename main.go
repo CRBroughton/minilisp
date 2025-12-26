@@ -52,4 +52,21 @@ func main() {
 	env.Define("<", makeBuiltin(builtinLt))
 	result = eval(readStr("(< 3 10)"), env)
 	fmt.Println(printExpr(result)) // "true"
+
+	// Quote
+	result = eval(readStr("'(+ 1 2)"), env)
+	fmt.Println(printExpr(result)) // "(+ 1 2)" - not evaluated!
+
+	// If
+	result = eval(readStr("(if (< 3 5) 10 20)"), env)
+	fmt.Println(printExpr(result)) // "10"
+
+	// Define
+	eval(readStr("(define x 42)"), env)
+	result = eval(readStr("x"), env)
+	fmt.Println(printExpr(result)) // "42"
+
+	// Begin
+	result = eval(readStr("(begin (define x 1) (define y 2) (+ x y))"), env)
+	fmt.Println(printExpr(result)) // "3"
 }
