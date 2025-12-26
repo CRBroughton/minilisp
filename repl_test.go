@@ -57,10 +57,10 @@ func TestMacroProgram(t *testing.T) {
 	program := `
 		(define defmacro
 			(macro (name params body)
-				(cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))
+				(pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))
 
 		(defmacro when (test body)
-			(cons 'if (cons test (cons body (cons 'nil nil)))))
+			(pair 'if (pair test (pair body (pair 'nil nil)))))
 
 		(when true 42)
 	`
@@ -84,12 +84,12 @@ func TestCompleteProgram(t *testing.T) {
 		; Define defmacro
 		(define defmacro
 			(macro (name params body)
-				(cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))
+				(pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))
 
 		; Define let macro
 		(defmacro let (bindings body)
-			(cons (cons 'lambda (cons (cons (head (head bindings)) nil) (cons body nil)))
-				(cons (head (tail (head bindings))) nil)))
+			(pair (pair 'lambda (pair (pair (head (head bindings)) nil) (pair body nil)))
+				(pair (head (tail (head bindings))) nil)))
 
 		; Use let to compute something
 		(let ((x 10)) (+ (* x 2) 5))
@@ -117,7 +117,7 @@ func setupFullEnv() *Env {
 	env.Define("/", makeBuiltin(builtinDiv))
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 	env.Define("head", makeBuiltin(builtinHead))
 	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("null?", makeBuiltin(builtinNullP))

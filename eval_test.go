@@ -519,10 +519,10 @@ func TestMacroCreation(t *testing.T) {
 
 func TestSimpleMacro(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
 	// Define a macro that quotes its argument
-	eval(readStr("(define my-quote (macro (x) (cons 'quote (cons x nil))))"), env)
+	eval(readStr("(define my-quote (macro (x) (pair 'quote (pair x nil))))"), env)
 
 	// Use it
 	result := eval(readStr("(my-quote (+ 1 2))"), env)
@@ -539,14 +539,14 @@ func TestSimpleMacro(t *testing.T) {
 func TestMacroVsFunction(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("+", makeBuiltin(builtinAdd))
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
 	// Function version - evaluates argument
 	eval(readStr("(define func-quote (lambda (x) x))"), env)
 	funcResult := eval(readStr("(func-quote (+ 1 2))"), env)
 
 	// Macro version - doesn't evaluate argument
-	eval(readStr("(define macro-quote (macro (x) (cons 'quote (cons x nil))))"), env)
+	eval(readStr("(define macro-quote (macro (x) (pair 'quote (pair x nil))))"), env)
 	macroResult := eval(readStr("(macro-quote (+ 1 2))"), env)
 
 	// Function should return 3
@@ -562,13 +562,13 @@ func TestMacroVsFunction(t *testing.T) {
 
 func TestUnlessMacro(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
 	// Define unless macro
 	unless := `
 		(define unless
 			(macro (test body)
-				(cons 'if (cons test (cons 'nil (cons body nil))))))
+				(pair 'if (pair test (pair 'nil (pair body nil))))))
 	`
 	eval(readStr(unless), env)
 
@@ -598,13 +598,13 @@ func TestUnlessMacro(t *testing.T) {
 
 func TestMacroExpansion(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
 	// Define unless macro
 	unless := `
 		(define unless
 			(macro (test body)
-				(cons 'if (cons test (cons 'nil (cons body nil))))))
+				(pair 'if (pair test (pair 'nil (pair body nil))))))
 	`
 	eval(readStr(unless), env)
 
@@ -618,14 +618,14 @@ func TestMacroExpansion(t *testing.T) {
 
 func TestDefmacro(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
 	// Bootstrap defmacro
-	defmacroCode := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacroCode), env)
 
 	// Use defmacro to define unless
-	unless := "(defmacro unless (test body) (cons 'if (cons test (cons 'nil (cons body nil)))))"
+	unless := "(defmacro unless (test body) (pair 'if (pair test (pair 'nil (pair body nil)))))"
 	eval(readStr(unless), env)
 
 	// Test it
@@ -638,12 +638,12 @@ func TestDefmacro(t *testing.T) {
 
 func TestAndMacro(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
-	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	defmacro := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacro), env)
 
-	andMacro := "(defmacro and (a b) (cons 'if (cons a (cons b (cons 'nil nil)))))"
+	andMacro := "(defmacro and (a b) (pair 'if (pair a (pair b (pair 'nil nil)))))"
 	eval(readStr(andMacro), env)
 
 	tests := []struct {
@@ -669,12 +669,12 @@ func TestAndMacro(t *testing.T) {
 
 func TestOrMacro(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
-	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	defmacro := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacro), env)
 
-	orMacro := "(defmacro or (a b) (cons 'if (cons a (cons a (cons b nil)))))"
+	orMacro := "(defmacro or (a b) (pair 'if (pair a (pair a (pair b nil)))))"
 	eval(readStr(orMacro), env)
 
 	tests := []struct {
@@ -703,18 +703,18 @@ func TestLetMacro(t *testing.T) {
 	env.Define("+", makeBuiltin(builtinAdd))
 	env.Define("head", makeBuiltin(builtinHead))
 	env.Define("tail", makeBuiltin(builtinTail))
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
-	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	defmacro := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacro), env)
 
 	// let macro (simplified - one binding only)
 	letMacro := `
 		(defmacro let (bindings body)
-			(cons (cons 'lambda
-					(cons (cons (head (head bindings)) nil)
-						(cons body nil)))
-				(cons (head (tail (head bindings))) nil)))
+			(pair (pair 'lambda
+					(pair (pair (head (head bindings)) nil)
+						(pair body nil)))
+				(pair (head (tail (head bindings))) nil)))
 	`
 	eval(readStr(letMacro), env)
 
@@ -728,17 +728,17 @@ func TestLetMacro(t *testing.T) {
 
 func TestRecursiveMacroExpansion(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
-	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	defmacro := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacro), env)
 
 	// when expands to if
-	when := "(defmacro when (test body) (cons 'if (cons test (cons body (cons 'nil nil)))))"
+	when := "(defmacro when (test body) (pair 'if (pair test (pair body (pair 'nil nil)))))"
 	eval(readStr(when), env)
 
 	// unless expands to when (which expands to if)
-	unless := "(defmacro unless (test body) (cons 'when (cons (cons 'if (cons test (cons 'nil (cons true nil)))) (cons body nil))))"
+	unless := "(defmacro unless (test body) (pair 'when (pair (pair 'if (pair test (pair 'nil (pair true nil)))) (pair body nil))))"
 	eval(readStr(unless), env)
 
 	result := eval(readStr("(unless nil 77)"), env)

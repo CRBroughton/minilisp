@@ -153,15 +153,15 @@ func TestBuiltinLt(t *testing.T) {
 	}
 }
 
-func TestBuiltinCons(t *testing.T) {
+func TestBuiltinPairs(t *testing.T) {
 	env := NewEnv(nil)
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
-	expr := readStr("(cons 1 2)")
+	expr := readStr("(pair 1 2)")
 	result := eval(expr, env)
 
-	if result.Type != Cons {
-		t.Fatalf("cons result type = %v, want Cons", result.Type)
+	if result.Type != Pair {
+		t.Fatalf("pair result type = %v, want Pair", result.Type)
 	}
 	if result.Head.Num != 1 {
 		t.Errorf("head = %d, want 1", result.Head.Num)
@@ -174,9 +174,9 @@ func TestBuiltinCons(t *testing.T) {
 func TestBuiltinHead(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("head", makeBuiltin(builtinHead))
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
-	expr := readStr("(head (cons 1 2))")
+	expr := readStr("(head (pair 1 2))")
 	result := eval(expr, env)
 
 	if result.Num != 1 {
@@ -187,9 +187,9 @@ func TestBuiltinHead(t *testing.T) {
 func TestBuiltinTail(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("tail", makeBuiltin(builtinTail))
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 
-	expr := readStr("(tail (cons 1 2))")
+	expr := readStr("(tail (pair 1 2))")
 	result := eval(expr, env)
 
 	if result.Num != 2 {

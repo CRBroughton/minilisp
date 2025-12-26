@@ -76,8 +76,8 @@ func TestReadSimpleList(t *testing.T) {
 	expr := readStr("(1 2 3)")
 
 	// Check structure
-	if expr.Type != Cons {
-		t.Fatalf("type = %v, want Cons", expr.Type)
+	if expr.Type != Pair {
+		t.Fatalf("type = %v, want Pair", expr.Type)
 	}
 
 	// Check elements
@@ -108,8 +108,8 @@ func TestReadNestedList(t *testing.T) {
 	}
 
 	// Second element should be (2 3)
-	if elems[1].Type != Cons {
-		t.Fatalf("second type = %v, want Cons", elems[1].Type)
+	if elems[1].Type != Pair {
+		t.Fatalf("second type = %v, want Pair", elems[1].Type)
 	}
 	inner := listToSlice(elems[1])
 	if len(inner) != 2 || inner[0].Num != 2 || inner[1].Num != 3 {
@@ -126,8 +126,8 @@ func TestReadQuote(t *testing.T) {
 	// 'x should become (quote x)
 	expr := readStr("'x")
 
-	if expr.Type != Cons {
-		t.Fatalf("type = %v, want Cons", expr.Type)
+	if expr.Type != Pair {
+		t.Fatalf("type = %v, want Pair", expr.Type)
 	}
 
 	elems := listToSlice(expr)
@@ -209,8 +209,8 @@ func TestReadComplexExpression(t *testing.T) {
 	expr := readStr(input)
 
 	// Just verify it parses without error
-	if expr.Type != Cons {
-		t.Fatalf("type = %v, want Cons", expr.Type)
+	if expr.Type != Pair {
+		t.Fatalf("type = %v, want Pair", expr.Type)
 	}
 
 	// Verify it round-trips correctly

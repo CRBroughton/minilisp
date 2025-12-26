@@ -94,7 +94,7 @@ func (r *Reader) readList() *Expr {
 	// Read elements until )
 	head := r.readExpr()
 	tail := r.readList()
-	return cons(head, tail)
+	return pair(head, tail)
 }
 
 func (r *Reader) readNumber() *Expr {

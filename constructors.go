@@ -7,7 +7,7 @@ const (
 	Bool
 	Number
 	Symbol
-	Cons
+	Pair
 	Builtin
 	Lambda
 	Macro
@@ -47,8 +47,8 @@ func makeSym(s string) *Expr {
 	return &Expr{Type: Symbol, Sym: s}
 }
 
-func cons(head, tail *Expr) *Expr {
-	return &Expr{Type: Cons, Head: head, Tail: tail}
+func pair(head, tail *Expr) *Expr {
+	return &Expr{Type: Pair, Head: head, Tail: tail}
 }
 
 func makeBuiltin(fn func([]*Expr) *Expr) *Expr {
@@ -65,14 +65,14 @@ func list(exprs ...*Expr) *Expr {
 	result := nilExpr
 
 	for i := len(exprs) - 1; i >= 0; i-- {
-		result = cons(exprs[i], result)
+		result = pair(exprs[i], result)
 	}
 	return result
 }
 
 func listToSlice(e *Expr) []*Expr {
 	var result []*Expr
-	for e != nilExpr && e.Type == Cons {
+	for e != nilExpr && e.Type == Pair {
 		result = append(result, e.Head)
 		e = e.Tail
 	}

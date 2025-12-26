@@ -5,7 +5,7 @@ import "fmt"
 // Evaluate a list of expressions
 func evalList(list *Expr, env *Env) []*Expr {
 	var result []*Expr
-	for list != nilExpr && list.Type == Cons {
+	for list != nilExpr && list.Type == Pair {
 		result = append(result, eval(list.Head, env))
 		list = list.Tail
 	}
@@ -13,7 +13,7 @@ func evalList(list *Expr, env *Env) []*Expr {
 }
 
 func macroexpand(e *Expr, env *Env) *Expr {
-	if e == nilExpr || e.Type != Cons {
+	if e == nilExpr || e.Type != Pair {
 		return e
 	}
 
@@ -61,9 +61,9 @@ func eval(e *Expr, env *Env) *Expr {
 		}
 		return val
 	// Head | tail support
-	case Cons:
+	case Pair:
 		e = macroexpand(e, env)
-		if e.Type != Cons {
+		if e.Type != Pair {
 			return eval(e, env)
 		}
 

@@ -31,7 +31,7 @@ func printExpr(e *Expr) string {
 		return "<lambda>"
 	case Macro:
 		return "<macro>"
-	case Cons:
+	case Pair:
 		return printList(e)
 	default:
 		return "<unknown>"
@@ -43,7 +43,7 @@ func printList(e *Expr) string {
 	var parts []string
 
 	// Collect all elements
-	for e != nilExpr && e.Type == Cons {
+	for e != nilExpr && e.Type == Pair {
 		parts = append(parts, printExpr(e.Head))
 		e = e.Tail
 	}

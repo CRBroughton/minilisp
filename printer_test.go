@@ -117,7 +117,7 @@ func TestPrintSymbolList(t *testing.T) {
 
 func TestPrintImproperList(t *testing.T) {
 	// (1 . 2) - improper list (dotted pair)
-	pair := cons(makeNum(1), makeNum(2))
+	pair := pair(makeNum(1), makeNum(2))
 	got := printExpr(pair)
 	want := "(1 . 2)"
 	if got != want {

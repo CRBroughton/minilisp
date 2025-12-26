@@ -18,14 +18,14 @@ func main() {
 	env.Define("/", makeBuiltin(builtinDiv))
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
-	env.Define("cons", makeBuiltin(builtinCons))
+	env.Define("pair", makeBuiltin(builtinPair))
 	env.Define("head", makeBuiltin(builtinHead))
 	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("null?", makeBuiltin(builtinNullP))
 	env.Define("print", makeBuiltin(builtinPrint))
 
 	// Bootstrap defmacro
-	defmacroCode := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacroCode), env)
 
 	// Check if input is from pipe/file or interactive
