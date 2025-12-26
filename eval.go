@@ -28,6 +28,32 @@ func eval(e *Expr, env *Env) *Expr {
 		op := e.Car
 		args := e.Cdr
 
+		if op.Type == Symbol {
+			switch op.Sym {
+			case "quote":
+				// (quote x) → x (unevaluated)
+				return args.Car
+			case "if":
+				cond := eval(args.Car, env)
+				if cond != nilExpr {
+					return eval(args.Cdr.Car, env)
+				}
+				return eval(args.Cdr.Cdr.Car, env)
+			case "define":
+				sym := args.Car
+				val := eval(args.Cdr.Car, env)
+				env.Define(sym.Sym, val)
+				return val
+			case "begin":
+				var result *Expr = nilExpr
+				for args != nilExpr {
+					result = eval(args.Car, env)
+					args = args.Cdr
+				}
+				return result
+			}
+		}
+
 		fn := eval(op, env)
 		evaledArgs := evalList(args, env)
 
