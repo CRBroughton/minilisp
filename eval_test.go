@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestEvalNumber(t *testing.T) {
 	env := NewEnv(nil)
@@ -284,5 +287,220 @@ func TestComplexProgram(t *testing.T) {
 	// x=10, y=15, x<y is true, so (* 10 15) = 150
 	if result.Num != 150 {
 		t.Errorf("program result = %d, want 150", result.Num)
+	}
+}
+
+func TestLambda(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("*", makeBuiltin(builtinMul))
+
+	// Create a lambda
+	expr := readStr("(lambda (x) (* x 2))")
+	result := eval(expr, env)
+
+	if result.Type != Lambda {
+		t.Fatalf("lambda type = %v, want Lambda", result.Type)
+	}
+}
+
+func TestLambdaApplication(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("*", makeBuiltin(builtinMul))
+
+	// ((lambda (x) (* x 2)) 21) → 42
+	expr := readStr("((lambda (x) (* x 2)) 21)")
+	result := eval(expr, env)
+
+	if result.Num != 42 {
+		t.Errorf("lambda application = %d, want 42", result.Num)
+	}
+}
+
+func TestLambdaMultipleParams(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+
+	// ((lambda (x y) (+ x y)) 10 20) → 30
+	expr := readStr("((lambda (x y) (+ x y)) 10 20)")
+	result := eval(expr, env)
+
+	if result.Num != 30 {
+		t.Errorf("lambda with 2 params = %d, want 30", result.Num)
+	}
+}
+
+func TestDefineLambda(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("*", makeBuiltin(builtinMul))
+
+	// Define a function
+	eval(readStr("(define double (lambda (x) (* x 2)))"), env)
+
+	// Use it
+	result := eval(readStr("(double 21)"), env)
+
+	if result.Num != 42 {
+		t.Errorf("double(21) = %d, want 42", result.Num)
+	}
+}
+
+func TestSimpleClosure(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+
+	program := `
+		(begin
+			(define x 10)
+			(define add-x (lambda (y) (+ x y)))
+			(add-x 5))
+	`
+
+	result := eval(readStr(program), env)
+
+	if result.Num != 15 {
+		t.Errorf("closure result = %d, want 15", result.Num)
+	}
+}
+
+func TestNestedClosure(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+
+	program := `
+		(begin
+			(define make-adder
+				(lambda (n)
+					(lambda (x) (+ x n))))
+			(define add5 (make-adder 5))
+			(add5 10))
+	`
+
+	result := eval(readStr(program), env)
+
+	if result.Num != 15 {
+		t.Errorf("nested closure = %d, want 15", result.Num)
+	}
+}
+
+func TestClosureCapture(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+
+	// Two closures capturing different values
+	program := `
+		(begin
+			(define make-adder (lambda (n) (lambda (x) (+ x n))))
+			(define add3 (make-adder 3))
+			(define add7 (make-adder 7))
+			(+ (add3 10) (add7 10)))
+	`
+
+	result := eval(readStr(program), env)
+
+	// (add3 10) = 13, (add7 10) = 17, 13 + 17 = 30
+	if result.Num != 30 {
+		t.Errorf("two closures = %d, want 30", result.Num)
+	}
+}
+
+func TestRecursion(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("-", makeBuiltin(builtinSub))
+	env.Define("*", makeBuiltin(builtinMul))
+	env.Define("=", makeBuiltin(builtinEq))
+
+	// Define factorial
+	factorial := `
+		(define factorial
+			(lambda (n)
+				(if (= n 0)
+					1
+					(* n (factorial (- n 1))))))
+	`
+	eval(readStr(factorial), env)
+
+	tests := []struct {
+		input int
+		want  int
+	}{
+		{0, 1},
+		{1, 1},
+		{5, 120},
+		{6, 720},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(fmt.Sprintf("(factorial %d)", tt.input))
+		result := eval(expr, env)
+
+		if result.Num != tt.want {
+			t.Errorf("factorial(%d) = %d, want %d", tt.input, result.Num, tt.want)
+		}
+	}
+}
+
+func TestFibonacci(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("-", makeBuiltin(builtinSub))
+	env.Define("<", makeBuiltin(builtinLt))
+
+	fib := `
+		(define fib
+			(lambda (n)
+				(if (< n 2)
+					n
+					(+ (fib (- n 1)) (fib (- n 2))))))
+	`
+	eval(readStr(fib), env)
+
+	tests := []struct {
+		input int
+		want  int
+	}{
+		{0, 0},
+		{1, 1},
+		{2, 1},
+		{3, 2},
+		{4, 3},
+		{5, 5},
+		{6, 8},
+		{7, 13},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(fmt.Sprintf("(fib %d)", tt.input))
+		result := eval(expr, env)
+
+		if result.Num != tt.want {
+			t.Errorf("fib(%d) = %d, want %d", tt.input, result.Num, tt.want)
+		}
+	}
+}
+
+func TestHigherOrderFunction(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("*", makeBuiltin(builtinMul))
+
+	// Function that takes a function as argument
+	program := `
+		(begin
+			(define apply-twice
+				(lambda (f x)
+					(f (f x))))
+			(define double (lambda (n) (* n 2)))
+			(apply-twice double 5))
+	`
+
+	result := eval(readStr(program), env)
+
+	// double(double(5)) = double(10) = 20
+	if result.Num != 20 {
+		t.Errorf("higher-order function = %d, want 20", result.Num)
 	}
 }

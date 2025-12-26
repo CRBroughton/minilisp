@@ -44,6 +44,10 @@ func eval(e *Expr, env *Env) *Expr {
 				val := eval(args.Cdr.Car, env)
 				env.Define(sym.Sym, val)
 				return val
+			case "lambda":
+				params := args.Car
+				body := args.Cdr.Car
+				return makeLambda(params, body, env, Lambda)
 			case "begin":
 				var result *Expr = nilExpr
 				for args != nilExpr {
@@ -60,8 +64,22 @@ func eval(e *Expr, env *Env) *Expr {
 		if fn.Type == Builtin {
 			return fn.Fn(evaledArgs)
 		}
-		// TODO - lambda support
-		return nilExpr
+
+		if fn.Type == Lambda {
+			newEnv := NewEnv(fn.Env)
+
+			params := fn.Params
+			for _, arg := range evaledArgs {
+				if params == nilExpr {
+					panic("too many arguments")
+				}
+				newEnv.Define(params.Car.Sym, arg)
+				params = params.Cdr
+			}
+			return eval(fn.Body, newEnv)
+		}
+
+		panic(fmt.Sprintf("not a function: %s", printExpr(fn)))
 	default:
 		return e
 	}

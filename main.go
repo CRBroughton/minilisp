@@ -44,7 +44,9 @@ func main() {
 	fmt.Println(printExpr(result))     // "10"
 
 	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("-", makeBuiltin(builtinSub))
 	env.Define("*", makeBuiltin(builtinMul))
+	env.Define("=", makeBuiltin(builtinEq))
 
 	result = eval(readStr("(+ (* 2 3) (* 4 5))"), env)
 	fmt.Println(printExpr(result)) // "26"
@@ -69,4 +71,28 @@ func main() {
 	// Begin
 	result = eval(readStr("(begin (define x 1) (define y 2) (+ x y))"), env)
 	fmt.Println(printExpr(result)) // "3"
+
+	// Anonymous functions
+	result = eval(readStr("((lambda (x) (* x 2)) 21)"), env)
+	fmt.Println(printExpr(result)) // 42
+
+	// Named functions
+	eval(readStr("(define double (lambda (x) (* x 2)))"), env)
+	result = eval(readStr("(double 21)"), env)
+	fmt.Println(printExpr(result)) // 42
+
+	// Closures
+	program := `
+  (begin
+    (define make-adder (lambda (n) (lambda (x) (+ x n))))
+    (define add5 (make-adder 5))
+    (add5 10))
+`
+	result = eval(readStr(program), env)
+	fmt.Println(printExpr(result)) // 15
+
+	// Recursion
+	eval(readStr("(define factorial (lambda (n) (if (= n 0) 1 (* n (factorial (- n 1))))))"), env)
+	result = eval(readStr("(factorial 5)"), env)
+	fmt.Println(printExpr(result)) // 120
 }

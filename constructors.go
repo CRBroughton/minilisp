@@ -55,6 +55,10 @@ func makeBuiltin(fn func([]*Expr) *Expr) *Expr {
 	return &Expr{Type: Builtin, Fn: fn}
 }
 
+func makeLambda(params, body *Expr, env *Env, typ ExprType) *Expr {
+	return &Expr{Type: typ, Params: params, Body: body, Env: env}
+}
+
 // some helpers Ill need for lists
 
 func list(exprs ...*Expr) *Expr {
