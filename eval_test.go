@@ -913,3 +913,128 @@ func TestLoadPreventsDuplicates(t *testing.T) {
 		t.Errorf("counter should be 2 (file loaded twice), got %v", val)
 	}
 }
+
+func TestVariadicLambda(t *testing.T) {
+	env := setupFullEnv()
+
+	// Test basic variadic lambda with &rest
+	expr := readStr("(define list (lambda (&rest items) items))")
+	eval(expr, env)
+
+	// Call with multiple arguments
+	result := eval(readStr("(list 1 2 3)"), env)
+	items := listToSlice(result)
+
+	if len(items) != 3 {
+		t.Fatalf("expected 3 items, got %d", len(items))
+	}
+	if items[0].Num != 1 || items[1].Num != 2 || items[2].Num != 3 {
+		t.Errorf("expected (1 2 3), got (%d %d %d)", items[0].Num, items[1].Num, items[2].Num)
+	}
+}
+
+func TestVariadicLambdaEmpty(t *testing.T) {
+	env := setupFullEnv()
+
+	// Test variadic lambda with no arguments
+	expr := readStr("(define list (lambda (&rest items) items))")
+	eval(expr, env)
+
+	result := eval(readStr("(list)"), env)
+	if result != nilExpr {
+		t.Errorf("expected nil for empty &rest, got %v", result)
+	}
+}
+
+func TestVariadicLambdaMixed(t *testing.T) {
+	env := setupFullEnv()
+
+	// Test variadic lambda with regular params + &rest
+	expr := readStr("(define make-pair (lambda (first &rest rest) (pair first rest)))")
+	eval(expr, env)
+
+	result := eval(readStr("(make-pair 1 2 3 4)"), env)
+
+	// Should be (1 . (2 3 4))
+	if result.Type != Pair {
+		t.Fatalf("expected Pair, got %v", result.Type)
+	}
+	if result.Head.Num != 1 {
+		t.Errorf("head should be 1, got %d", result.Head.Num)
+	}
+
+	rest := listToSlice(result.Tail)
+	if len(rest) != 3 {
+		t.Fatalf("tail should have 3 items, got %d", len(rest))
+	}
+	if rest[0].Num != 2 || rest[1].Num != 3 || rest[2].Num != 4 {
+		t.Errorf("tail should be (2 3 4), got (%d %d %d)", rest[0].Num, rest[1].Num, rest[2].Num)
+	}
+}
+
+func TestVariadicMacro(t *testing.T) {
+	env := setupFullEnv()
+
+	// Bootstrap defmacro
+	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
+	eval(readStr(defmacroCode), env)
+
+	// Test variadic macro with &rest
+	expr := readStr(`
+		(defmacro test-cond (&rest clauses)
+			(if (= clauses nil)
+				nil
+				(pair 'if
+					(pair (head (head clauses))
+						(pair (head (tail (head clauses)))
+							(pair (pair 'test-cond (tail clauses))
+								nil))))))
+	`)
+	eval(expr, env)
+
+	// Test the macro
+	result := eval(readStr("(test-cond ((= 1 0) 100) ((= 1 1) 200))"), env)
+	if result.Num != 200 {
+		t.Errorf("expected 200, got %d", result.Num)
+	}
+}
+
+func TestVariadicMacroEmpty(t *testing.T) {
+	env := setupFullEnv()
+
+	// Bootstrap defmacro
+	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
+	eval(readStr(defmacroCode), env)
+
+	// Macro that returns nil for empty clauses
+	expr := readStr(`
+		(defmacro safe-cond (&rest clauses)
+			(if (= clauses nil)
+				'nil
+				(head (head clauses))))
+	`)
+	eval(expr, env)
+
+	result := eval(readStr("(safe-cond)"), env)
+	if result != nilExpr {
+		t.Errorf("expected nil for empty &rest macro, got %v", result)
+	}
+}
+
+func TestVariadicLambdaSingleArg(t *testing.T) {
+	env := setupFullEnv()
+
+	// Test variadic with just one argument
+	expr := readStr("(define single (lambda (&rest items) items))")
+	eval(expr, env)
+
+	result := eval(readStr("(single 42)"), env)
+	items := listToSlice(result)
+
+	if len(items) != 1 {
+		t.Fatalf("expected 1 item, got %d", len(items))
+	}
+	if items[0].Num != 42 {
+		t.Errorf("expected 42, got %d", items[0].Num)
+	}
+}
