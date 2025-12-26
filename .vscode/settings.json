@@ -3,7 +3,7 @@
         "expressions",
         "env",
         "printer",
-        "lexer",
+        "reader",
         "eval",
         "funcs",
         "repl",
