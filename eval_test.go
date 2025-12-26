@@ -27,7 +27,7 @@ func TestEvalBool(t *testing.T) {
 
 	result := eval(trueExpr, env)
 	if result != trueExpr {
-		t.Error("eval(#t) should return trueExpr")
+		t.Error("eval(true) should return trueExpr")
 	}
 }
 
@@ -257,7 +257,7 @@ func TestNestedIf(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("<", makeBuiltin(builtinLt))
 
-	// Nested if: (if (< 3 5) (if #t 1 2) 3)
+	// Nested if: (if (< 3 5) (if true 1 2) 3)
 	expr := readStr("(if (< 3 5) (if true 1 2) 3)")
 	result := eval(expr, env)
 
@@ -502,5 +502,248 @@ func TestHigherOrderFunction(t *testing.T) {
 	// double(double(5)) = double(10) = 20
 	if result.Num != 20 {
 		t.Errorf("higher-order function = %d, want 20", result.Num)
+	}
+}
+
+func TestMacroCreation(t *testing.T) {
+	env := NewEnv(nil)
+
+	// Create a macro
+	expr := readStr("(macro (x) x)")
+	result := eval(expr, env)
+
+	if result.Type != Macro {
+		t.Fatalf("macro type = %v, want Macro", result.Type)
+	}
+}
+
+func TestSimpleMacro(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	// Define a macro that quotes its argument
+	eval(readStr("(define my-quote (macro (x) (cons 'quote (cons x nil))))"), env)
+
+	// Use it
+	result := eval(readStr("(my-quote (+ 1 2))"), env)
+
+	// Should return (+ 1 2) unevaluated
+	got := printExpr(result)
+	want := "(+ 1 2)"
+
+	if got != want {
+		t.Errorf("my-quote = %q, want %q", got, want)
+	}
+}
+
+func TestMacroVsFunction(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	// Function version - evaluates argument
+	eval(readStr("(define func-quote (lambda (x) x))"), env)
+	funcResult := eval(readStr("(func-quote (+ 1 2))"), env)
+
+	// Macro version - doesn't evaluate argument
+	eval(readStr("(define macro-quote (macro (x) (cons 'quote (cons x nil))))"), env)
+	macroResult := eval(readStr("(macro-quote (+ 1 2))"), env)
+
+	// Function should return 3
+	if funcResult.Num != 3 {
+		t.Errorf("function = %v, want 3", funcResult)
+	}
+
+	// Macro should return (+ 1 2)
+	if printExpr(macroResult) != "(+ 1 2)" {
+		t.Errorf("macro = %q, want \"(+ 1 2)\"", printExpr(macroResult))
+	}
+}
+
+func TestUnlessMacro(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	// Define unless macro
+	unless := `
+		(define unless
+			(macro (test body)
+				(cons 'if (cons test (cons 'nil (cons body nil))))))
+	`
+	eval(readStr(unless), env)
+
+	// Test it
+	tests := []struct {
+		input string
+		want  int
+	}{
+		{"(unless nil 42)", 42},
+		{"(unless true 42)", 0}, // Returns nil → 0
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		// Handle nil case
+		if result == nilExpr {
+			if tt.want != 0 {
+				t.Errorf("%s = nil, want %d", tt.input, tt.want)
+			}
+		} else if result.Num != tt.want {
+			t.Errorf("%s = %d, want %d", tt.input, result.Num, tt.want)
+		}
+	}
+}
+
+func TestMacroExpansion(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	// Define unless macro
+	unless := `
+		(define unless
+			(macro (test body)
+				(cons 'if (cons test (cons 'nil (cons body nil))))))
+	`
+	eval(readStr(unless), env)
+
+	// Use it
+	result := eval(readStr("(unless nil 42)"), env)
+
+	if result.Num != 42 {
+		t.Errorf("unless nil 42 = %v, want 42", result)
+	}
+}
+
+func TestDefmacro(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	// Bootstrap defmacro
+	defmacroCode := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	eval(readStr(defmacroCode), env)
+
+	// Use defmacro to define unless
+	unless := "(defmacro unless (test body) (cons 'if (cons test (cons 'nil (cons body nil)))))"
+	eval(readStr(unless), env)
+
+	// Test it
+	result := eval(readStr("(unless nil 99)"), env)
+
+	if result.Num != 99 {
+		t.Errorf("defmacro unless = %v, want 99", result)
+	}
+}
+
+func TestAndMacro(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	eval(readStr(defmacro), env)
+
+	andMacro := "(defmacro and (a b) (cons 'if (cons a (cons b (cons 'nil nil)))))"
+	eval(readStr(andMacro), env)
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(and true true)", true},
+		{"(and true nil)", false},
+		{"(and nil true)", false},
+		{"(and nil nil)", false},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
+
+func TestOrMacro(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	eval(readStr(defmacro), env)
+
+	orMacro := "(defmacro or (a b) (cons 'if (cons a (cons a (cons b nil)))))"
+	eval(readStr(orMacro), env)
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(or true true)", true},
+		{"(or true nil)", true},
+		{"(or nil true)", true},
+		{"(or nil nil)", false},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
+
+func TestLetMacro(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("+", makeBuiltin(builtinAdd))
+	env.Define("car", makeBuiltin(builtinCar))
+	env.Define("cdr", makeBuiltin(builtinCdr))
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	eval(readStr(defmacro), env)
+
+	// let macro (simplified - one binding only)
+	letMacro := `
+		(defmacro let (bindings body)
+			(cons (cons 'lambda
+					(cons (cons (car (car bindings)) nil)
+						(cons body nil)))
+				(cons (car (cdr (car bindings))) nil)))
+	`
+	eval(readStr(letMacro), env)
+
+	// Test it
+	result := eval(readStr("(let ((x 10)) (+ x 5))"), env)
+
+	if result.Num != 15 {
+		t.Errorf("let = %v, want 15", result)
+	}
+}
+
+func TestRecursiveMacroExpansion(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("cons", makeBuiltin(builtinCons))
+
+	defmacro := "(define defmacro (macro (name params body) (cons 'define (cons name (cons (cons 'macro (cons params (cons body nil))) nil)))))"
+	eval(readStr(defmacro), env)
+
+	// when expands to if
+	when := "(defmacro when (test body) (cons 'if (cons test (cons body (cons 'nil nil)))))"
+	eval(readStr(when), env)
+
+	// unless expands to when (which expands to if)
+	unless := "(defmacro unless (test body) (cons 'when (cons (cons 'if (cons test (cons 'nil (cons true nil)))) (cons body nil))))"
+	eval(readStr(unless), env)
+
+	result := eval(readStr("(unless nil 77)"), env)
+
+	if result.Num != 77 {
+		t.Errorf("recursive expansion = %v, want 77", result)
 	}
 }

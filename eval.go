@@ -12,6 +12,43 @@ func evalList(list *Expr, env *Env) []*Expr {
 	return result
 }
 
+func macroexpand(e *Expr, env *Env) *Expr {
+	if e == nilExpr || e.Type != Cons {
+		return e
+	}
+
+	op := e.Car
+	if op.Type != Symbol {
+		return e
+	}
+
+	// Look up the operator
+	val, ok := env.Lookup(op.Sym)
+	if !ok || val.Type != Macro {
+		return e
+	}
+
+	// Apply macro to unevaluated arguments
+	args := listToSlice(e.Cdr)
+	newEnv := NewEnv(val.Env)
+
+	// Bind parameters to unevaluated arguments
+	params := val.Params
+	for _, arg := range args {
+		if params == nilExpr {
+			panic("macro: too many arguments")
+		}
+		newEnv.Define(params.Car.Sym, arg)
+		params = params.Cdr
+	}
+
+	// Evaluate macro body to get new code
+	expanded := eval(val.Body, newEnv)
+
+	// Recursively expand the result
+	return macroexpand(expanded, env)
+}
+
 func eval(e *Expr, env *Env) *Expr {
 	switch e.Type {
 	// these types are self-evaluating
@@ -25,6 +62,11 @@ func eval(e *Expr, env *Env) *Expr {
 		return val
 	// Head | tail support
 	case Cons:
+		e = macroexpand(e, env)
+		if e.Type != Cons {
+			return eval(e, env)
+		}
+
 		op := e.Car
 		args := e.Cdr
 
@@ -44,6 +86,10 @@ func eval(e *Expr, env *Env) *Expr {
 				val := eval(args.Cdr.Car, env)
 				env.Define(sym.Sym, val)
 				return val
+			case "macro":
+				params := args.Car
+				body := args.Cdr.Car
+				return makeLambda(params, body, env, Macro)
 			case "lambda":
 				params := args.Car
 				body := args.Cdr.Car
