@@ -37,12 +37,34 @@ func macroexpand(e *Expr, env *Env) *Expr {
 
 	// Bind parameters to unevaluated arguments
 	params := val.Params
-	for _, arg := range args {
-		if params == nilExpr {
-			panic("macro: too many arguments")
+	i := 0
+	for params != nilExpr {
+		// Check for &rest parameter
+		if params.Head != nil && params.Head.Type == Symbol && params.Head.Sym == "&rest" {
+			// Next param gets all remaining args as a list
+			params = params.Tail
+			if params == nilExpr {
+				panic("macro: &rest requires a parameter name")
+			}
+			// Build a list from remaining args
+			restList := nilExpr
+			for j := len(args) - 1; j >= i; j-- {
+				restList = pair(args[j], restList)
+			}
+			newEnv.Define(params.Head.Sym, restList)
+			break
 		}
-		newEnv.Define(params.Head.Sym, arg)
+
+		if i >= len(args) {
+			panic("macro: not enough arguments")
+		}
+		newEnv.Define(params.Head.Sym, args[i])
 		params = params.Tail
+		i++
+	}
+
+	if i < len(args) && params == nilExpr {
+		panic("macro: too many arguments")
 	}
 
 	// Evaluate macro body to get new code
@@ -144,13 +166,36 @@ func eval(e *Expr, env *Env) *Expr {
 			newEnv := NewEnv(fn.Env)
 
 			params := fn.Params
-			for _, arg := range evaledArgs {
-				if params == nilExpr {
-					panic("too many arguments")
+			i := 0
+			for params != nilExpr {
+				// Check for &rest parameter
+				if params.Head != nil && params.Head.Type == Symbol && params.Head.Sym == "&rest" {
+					// Next param gets all remaining args as a list
+					params = params.Tail
+					if params == nilExpr {
+						panic("lambda: &rest requires a parameter name")
+					}
+					// Build a list from remaining args
+					restList := nilExpr
+					for j := len(evaledArgs) - 1; j >= i; j-- {
+						restList = pair(evaledArgs[j], restList)
+					}
+					newEnv.Define(params.Head.Sym, restList)
+					break
 				}
-				newEnv.Define(params.Head.Sym, arg)
+
+				if i >= len(evaledArgs) {
+					panic("not enough arguments")
+				}
+				newEnv.Define(params.Head.Sym, evaledArgs[i])
 				params = params.Tail
+				i++
 			}
+
+			if i < len(evaledArgs) && params == nilExpr {
+				panic("too many arguments")
+			}
+
 			return eval(fn.Body, newEnv)
 		}
 
