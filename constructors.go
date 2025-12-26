@@ -1,16 +1,16 @@
 package main
 
-type ExprType int
+type ExprType string
 
 const (
-	Nil ExprType = iota
-	Bool
-	Number
-	Symbol
-	Pair
-	Builtin
-	Lambda
-	Macro
+	Nil     ExprType = "Nil"
+	Bool    ExprType = "Bool"
+	Number  ExprType = "Number"
+	Symbol  ExprType = "Symbol"
+	Pair    ExprType = "Pair"
+	Builtin ExprType = "Builtin"
+	Lambda  ExprType = "Lambda"
+	Macro   ExprType = "Macro"
 )
 
 type Expr struct {

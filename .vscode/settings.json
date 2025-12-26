@@ -6,6 +6,7 @@
         "lexer",
         "eval",
         "funcs",
-        "repl"
+        "repl",
+        "constructor"
     ]
 }
