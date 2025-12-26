@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -745,5 +747,169 @@ func TestRecursiveMacroExpansion(t *testing.T) {
 
 	if result.Num != 77 {
 		t.Errorf("recursive expansion = %v, want 77", result)
+	}
+}
+
+func TestLoadSimpleFile(t *testing.T) {
+	// Create a temporary file
+	tmpfile, err := os.CreateTemp("", "test-*.lisp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	// Write test code
+	content := `(define x 42)
+(define y 99)`
+	if _, err := tmpfile.Write([]byte(content)); err != nil {
+		t.Fatal(err)
+	}
+	tmpfile.Close()
+
+	// Load the file
+	env := setupFullEnv()
+
+	loadExpr := readStr(fmt.Sprintf("(load \"%s\")", tmpfile.Name()))
+	eval(loadExpr, env)
+
+	// Check that variables are defined
+	if val, ok := env.Lookup("x"); !ok || val.Num != 42 {
+		t.Errorf("x should be 42, got %v", val)
+	}
+	if val, ok := env.Lookup("y"); !ok || val.Num != 99 {
+		t.Errorf("y should be 99, got %v", val)
+	}
+}
+
+func TestLoadWithMacros(t *testing.T) {
+	tmpfile, err := os.CreateTemp("", "macros-*.lisp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	// Define a macro in the file
+	content := `(define defmacro
+		(macro (name params body)
+			(pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))
+
+(defmacro when (test body)
+	(pair 'if (pair test (pair body (pair 'nil nil)))))`
+
+	if _, err := tmpfile.Write([]byte(content)); err != nil {
+		t.Fatal(err)
+	}
+	tmpfile.Close()
+
+	// Load and use the macro
+	env := setupFullEnv()
+
+	loadExpr := readStr(fmt.Sprintf("(load \"%s\")", tmpfile.Name()))
+	eval(loadExpr, env)
+
+	// Use the when macro
+	result := eval(readStr("(when true 42)"), env)
+	if result.Num != 42 {
+		t.Errorf("when macro should return 42, got %v", result)
+	}
+}
+
+func TestLoadReturnsLastValue(t *testing.T) {
+	tmpfile, err := os.CreateTemp("", "return-*.lisp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	content := `(define x 10)
+(define y 20)
+(+ x y)`
+
+	if _, err := tmpfile.Write([]byte(content)); err != nil {
+		t.Fatal(err)
+	}
+	tmpfile.Close()
+
+	env := setupFullEnv()
+
+	loadExpr := readStr(fmt.Sprintf("(load \"%s\")", tmpfile.Name()))
+	result := eval(loadExpr, env)
+
+	// Should return 30 (the result of (+ x y))
+	if result.Num != 30 {
+		t.Errorf("load should return 30, got %v", result)
+	}
+}
+
+func TestLoadNonexistentFile(t *testing.T) {
+	env := setupFullEnv()
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("loading nonexistent file should panic")
+		}
+	}()
+
+	loadExpr := readStr("(load \"nonexistent.lisp\")")
+	eval(loadExpr, env)
+}
+
+func TestLoadRelativePath(t *testing.T) {
+	// Create subdirectory
+	tmpdir, err := os.MkdirTemp("", "testdir-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpdir)
+
+	// Create file in subdirectory
+	filepath := filepath.Join(tmpdir, "helper.lisp")
+	content := `(define helper-value 123)`
+
+	if err := os.WriteFile(filepath, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	env := setupFullEnv()
+
+	// Change to temp directory
+	oldDir, _ := os.Getwd()
+	os.Chdir(tmpdir)
+	defer os.Chdir(oldDir)
+
+	// Load with relative path
+	loadExpr := readStr("(load \"helper.lisp\")")
+	eval(loadExpr, env)
+
+	if val, ok := env.Lookup("helper-value"); !ok || val.Num != 123 {
+		t.Errorf("helper-value should be 123, got %v", val)
+	}
+}
+
+func TestLoadPreventsDuplicates(t *testing.T) {
+	tmpfile, err := os.CreateTemp("", "counter-*.lisp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	// File that increments a counter
+	content := `(define counter (if (null? counter) 1 (+ counter 1)))`
+
+	if err := os.WriteFile(tmpfile.Name(), []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	env := setupFullEnv()
+	env.Define("counter", nilExpr) // Start with nil
+
+	// Load twice
+	loadExpr := readStr(fmt.Sprintf("(load \"%s\")", tmpfile.Name()))
+	eval(loadExpr, env)
+	eval(loadExpr, env)
+
+	// counter should be 2 (loaded twice)
+	if val, ok := env.Lookup("counter"); !ok || val.Num != 2 {
+		t.Errorf("counter should be 2 (file loaded twice), got %v", val)
 	}
 }

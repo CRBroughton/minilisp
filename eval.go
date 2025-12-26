@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 // Evaluate a list of expressions
 func evalList(list *Expr, env *Env) []*Expr {
@@ -100,6 +103,32 @@ func eval(e *Expr, env *Env) *Expr {
 					result = eval(args.Head, env)
 					args = args.Tail
 				}
+				return result
+			case "load":
+				// (load "filepath.lisp")
+				if args == nilExpr {
+					panic("load: missing filepath argument")
+				}
+
+				// Evaluate the filepath argument (could be a variable)
+				filepath := eval(args.Head, env)
+
+				if filepath.Type != String {
+					panic("load: argument must be a string")
+				}
+
+				content, err := os.ReadFile(filepath.Str)
+				if err != nil {
+					panic(fmt.Sprintf("load: cannot read file %s: %v", filepath.Str, err))
+				}
+
+				exprs := readMultipleExprs(string(content))
+
+				var result *Expr = nilExpr
+				for _, expr := range exprs {
+					result = eval(expr, env)
+				}
+
 				return result
 			}
 		}

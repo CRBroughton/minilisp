@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -23,6 +24,8 @@ func printExpr(e *Expr) string {
 	switch e.Type {
 	case Number:
 		return strconv.Itoa(e.Num)
+	case String:
+		return fmt.Sprintf("\"%s\"", e.Str)
 	case Symbol:
 		return e.Sym
 	case Builtin:
