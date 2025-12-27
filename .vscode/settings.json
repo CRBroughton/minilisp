@@ -7,6 +7,7 @@
         "eval",
         "funcs",
         "repl",
-        "constructor"
+        "constructor",
+        "fetch"
     ]
 }
