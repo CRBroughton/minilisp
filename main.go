@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+func loadStdLib(env *Env) {
+	// Load macros (thread macros, when, cond)
+	eval(readStr(`(load "std/macro.lisp")`), env)
+
+	// Load functions (factorial, sum)
+	eval(readStr(`(load "std/functions.lisp")`), env)
+}
+
 func main() {
 	// Create global environment
 	env := NewEnv(nil)
@@ -36,6 +44,9 @@ func main() {
 	// Bootstrap defmacro
 	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacroCode), env)
+
+	// Load standard library
+	loadStdLib(env)
 
 	// Check if input is from pipe/file or interactive
 	stat, _ := os.Stdin.Stat()
