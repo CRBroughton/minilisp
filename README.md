@@ -14,8 +14,26 @@ load in external function definitions (that's a TODO).
 
 ## Getting started
 
+### Using the REPL
+
 ```bash
-go run .
+go build
+./minilisp
+```
+
+The REPL starts with the standard library loaded (thread macros, when, cond, factorial, sum):
+
+```
+> (-> 5 (* 2) (+ 3))
+13
+> (factorial 5)
+120
+> (load "fetch.lisp")
+```
+
+### Running a file
+
+```bash
 ./minilisp < file.lisp
 ```
 
