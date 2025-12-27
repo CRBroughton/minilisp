@@ -67,6 +67,35 @@ Here is an example of fetching data:
 (-> user (hash-get "public_repos") (print))
 ```
 
+Here is an example combining fetch with Result type and cond for error handling:
+
+```lisp
+(load "std/macro.lisp")
+(load "std/result.lisp")
+
+(define get-github-user
+  (lambda (username)
+    (cond
+      ((= username "") (err "Username cannot be empty"))
+      (true (ok (->> username
+                     (string-append "https://api.github.com/users/")
+                     (fetch) ; TODO - make the fetch return a Result type
+                     (json-parse)))))))
+
+(define print-user-info
+  (lambda (result)
+    (cond
+      ((ok? result)
+        (begin
+          (define user (unwrap result))
+          (print (string-append "User: " (hash-get user "login")))
+          (print (string-append "Repos: " (->string (hash-get user "public_repos"))))))
+      ((err? result)
+        (print (string-append "Error: " (unwrap-err result)))))))
+
+(->> "crbroughton" (get-github-user) (print-user-info))
+```
+
 Here is an example of conditionals:
 ```lisp
 (load "std/macro.lisp")
