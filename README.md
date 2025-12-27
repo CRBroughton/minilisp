@@ -22,7 +22,8 @@ go run .
 ## Example
 
 ```lisp
-(load "std.lisp")
+; Loads the included thread macros
+(load "std/macro.lisp")
 
 (print (-> (-> 5 (* 2)) (+ 3)))  ; 13
 (print (sum 1 2 3 4 5))          ; 15
