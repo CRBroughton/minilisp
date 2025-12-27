@@ -53,14 +53,20 @@
   (pair 'if (pair test (pair body (pair 'nil nil)))))
 
 ; Cond macro - multi-way conditional
-; Takes multiple (test expr) pairs and returns the expr for the first true test
+; Takes multiple (test expr...) pairs and returns the result of the first true test
+; Supports multiple expressions per clause
 ; Example: (cond ((= x 0) 100) ((< x 0) 200) (true 300))
+; Example: (cond ((ok? r) (print "ok") (unwrap r)) ((err? r) (print "err")))
 (defmacro cond (&rest clauses)
   (if (= clauses nil)
       nil
       (pair 'if
             (pair (head (head clauses))
-                  (pair (head (tail (head clauses)))
+                  (pair (if (= (tail (tail (head clauses))) nil)
+                            ; Single expression
+                            (head (tail (head clauses)))
+                            ; Multiple expressions - wrap in begin
+                            (pair 'begin (tail (head clauses))))
                         (pair (pair 'cond (tail clauses))
                               nil))))))
 
