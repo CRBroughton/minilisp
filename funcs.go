@@ -91,3 +91,74 @@ func builtinPrint(args []*Expr) *Expr {
 	fmt.Println(printExpr(args[0]))
 	return args[0]
 }
+
+func builtinHash(args []*Expr) *Expr {
+	if len(args)%2 != 0 {
+		panic("hash: expect an even number of arguments")
+	}
+
+	h := makeHash()
+	for i := 0; i < len(args); i += 2 {
+		key := args[i]
+		value := args[i+1]
+
+		if key.Type != String {
+			panic("hash: keys must be strings")
+		}
+		hashSet(h, key.Str, value)
+	}
+
+	return h
+}
+
+func builtinHashGet(args []*Expr) *Expr {
+	if len(args) != 2 {
+		panic("hash-get: expects 2 arguments")
+	}
+
+	hash := args[0]
+	key := args[1]
+
+	if key.Type != String {
+		panic("hash-get: key must be a string")
+	}
+
+	val, ok := hashGet(hash, key.Str)
+	if !ok {
+		return nilExpr
+	}
+	return val
+}
+
+func builtinHashSet(args []*Expr) *Expr {
+	if len(args) != 3 {
+		panic("hash-set: expects 3 arguments (hash, key, value)")
+	}
+
+	hash := args[0]
+	key := args[1]
+	value := args[2]
+
+	if key.Type != String {
+		panic("hash-set: key must be a string")
+	}
+
+	hashSet(hash, key.Str, value)
+	return hash
+}
+
+func builtinHashKeys(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("hash-keys: expects 1 argument")
+	}
+
+	keys := hashKeys(args[0])
+	result := nilExpr
+
+	// Build list of string keys
+	for i := len(keys) - 1; i >= 0; i-- {
+		result = pair(makeStr(keys[i]), result)
+	}
+
+	return result
+}

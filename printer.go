@@ -22,6 +22,8 @@ func printExpr(e *Expr) string {
 	}
 
 	switch e.Type {
+	case Hash:
+		return printHash(e)
 	case Number:
 		return strconv.Itoa(e.Num)
 	case String:
@@ -40,6 +42,19 @@ func printExpr(e *Expr) string {
 		return "<unknown>"
 	}
 
+}
+
+func printHash(e *Expr) string {
+	if len(e.HashTable) == 0 {
+		return "{}"
+	}
+
+	parts := []string{}
+	for k, v := range e.HashTable {
+		parts = append(parts, fmt.Sprintf("%q: %s", k, printExpr(v)))
+	}
+
+	return "{" + strings.Join(parts, ", ") + "}"
 }
 
 func printList(e *Expr) string {

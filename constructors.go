@@ -9,22 +9,24 @@ const (
 	String  ExprType = "String"
 	Symbol  ExprType = "Symbol"
 	Pair    ExprType = "Pair"
+	Hash    ExprType = "Hash"
 	Builtin ExprType = "Builtin"
 	Lambda  ExprType = "Lambda"
 	Macro   ExprType = "Macro"
 )
 
 type Expr struct {
-	Type   ExprType
-	Num    int
-	Sym    string
-	Str    string
-	Head   *Expr // head | first
-	Tail   *Expr // tail | last
-	Fn     func([]*Expr) *Expr
-	Params *Expr
-	Body   *Expr
-	Env    *Env
+	Type      ExprType
+	Num       int
+	Sym       string
+	Str       string
+	Head      *Expr
+	Tail      *Expr
+	HashTable map[string]*Expr
+	Fn        func([]*Expr) *Expr
+	Params    *Expr
+	Body      *Expr
+	Env       *Env
 }
 
 var nilExpr = &Expr{Type: Nil}
@@ -83,4 +85,41 @@ func listToSlice(e *Expr) []*Expr {
 		e = e.Tail
 	}
 	return result
+}
+
+// Creates an empty hash
+func makeHash() *Expr {
+	return &Expr{
+		Type:      Hash,
+		HashTable: make(map[string]*Expr),
+	}
+}
+
+// Set the hash key-values
+func hashSet(hash *Expr, key string, value *Expr) {
+	if hash.Type != Hash {
+		panic("hashSet: not a hash")
+	}
+	hash.HashTable[key] = value
+}
+
+// Get hash values by key
+func hashGet(hash *Expr, key string) (*Expr, bool) {
+	if hash.Type != Hash {
+		panic("hashGet: not a hash")
+	}
+	val, ok := hash.HashTable[key]
+	return val, ok
+}
+
+// Get all keys from a hash
+func hashKeys(hash *Expr) []string {
+	if hash.Type != Hash {
+		panic("hashKeys: not a hash")
+	}
+	keys := make([]string, 0, len(hash.HashTable))
+	for k := range hash.HashTable {
+		keys = append(keys, k)
+	}
+	return keys
 }

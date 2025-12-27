@@ -23,6 +23,10 @@ func main() {
 	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("null?", makeBuiltin(builtinNullP))
 	env.Define("print", makeBuiltin(builtinPrint))
+	env.Define("hash", makeBuiltin(builtinHash))
+	env.Define("hash-get", makeBuiltin(builtinHashGet))
+	env.Define("hash-set", makeBuiltin(builtinHashSet))
+	env.Define("hash-keys", makeBuiltin(builtinHashKeys))
 
 	// Bootstrap defmacro
 	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
