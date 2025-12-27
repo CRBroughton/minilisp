@@ -63,3 +63,8 @@
                   (pair (head (tail (head clauses)))
                         (pair (pair 'cond (tail clauses))
                               nil))))))
+
+; TODO - add a proper string helper
+(define ->string
+  (lambda (val)
+    (json-stringify val)))

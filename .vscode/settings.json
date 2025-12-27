@@ -9,6 +9,7 @@
         "repl",
         "constructor",
         "fetch",
-        "std"
+        "std",
+        "macros"
     ]
 }
