@@ -54,12 +54,53 @@ func builtinEq(args []*Expr) *Expr {
 		}
 	case Nil:
 		return trueExpr
+	case Pair:
+		// Structural equality for lists
+		if structuralEq(a, b) {
+			return trueExpr
+		}
 	default:
 		if a == b {
 			return trueExpr
 		}
 	}
 	return nilExpr
+}
+
+func structuralEq(a, b *Expr) bool {
+	// Both nil
+	if a == nilExpr && b == nilExpr {
+		return true
+	}
+
+	// One nil, one not
+	if a == nilExpr || b == nilExpr {
+		return false
+	}
+
+	// Different types
+	if a.Type != b.Type {
+		return false
+	}
+
+	// For pairs, recursively check head and tail
+	if a.Type == Pair {
+		return structuralEq(a.Head, b.Head) && structuralEq(a.Tail, b.Tail)
+	}
+
+	// For atoms, check value equality
+	switch a.Type {
+	case Number:
+		return a.Num == b.Num
+	case Symbol:
+		return a.Sym == b.Sym
+	case String:
+		return a.Str == b.Str
+	case Bool:
+		return a == b // trueExpr is a singleton
+	default:
+		return a == b // Pointer equality for other types
+	}
 }
 
 // TODO - implement Gt function, also
