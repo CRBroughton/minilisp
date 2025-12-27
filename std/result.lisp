@@ -29,3 +29,12 @@
 (define unwrap-err
   (lambda (result)
     (hash-get result "error")))
+
+; Unwrap a result, returning the value or a default
+; Example: (unwrap-or (ok 42) 0) returns 42
+; Example: (unwrap-or (err "failed") 0) returns 0
+(define unwrap-or
+  (lambda (result default)
+    (if (ok? result)
+        (hash-get result "value")
+        default)))
