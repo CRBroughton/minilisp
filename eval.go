@@ -117,7 +117,18 @@ func eval(e *Expr, env *Env) *Expr {
 				return makeLambda(params, body, env, Macro)
 			case "lambda":
 				params := args.Head
-				body := args.Tail.Head
+				bodyExprs := args.Tail
+
+				// If there's only one body expression, use it directly
+				// Otherwise, wrap multiple expressions in an implicit begin
+				var body *Expr
+				if bodyExprs.Tail == nilExpr {
+					// Single expression
+					body = bodyExprs.Head
+				} else {
+					// Multiple expressions - wrap in begin
+					body = pair(makeSym("begin"), bodyExprs)
+				}
 				return makeLambda(params, body, env, Lambda)
 			case "begin":
 				var result *Expr = nilExpr
