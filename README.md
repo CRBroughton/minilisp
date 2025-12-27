@@ -19,7 +19,7 @@ go run .
 ./minilisp < file.lisp
 ```
 
-## Example
+## Examples
 
 ```lisp
 ; Loads the included thread macros
@@ -33,4 +33,29 @@ go run .
   ((< x 0) "negative")
   ((= x 0) "zero")
   ((< 0 x) "positive")))         ; "positive"
+```
+Here is an example of fetching data:
+
+```lisp
+(define get-github-user
+  (lambda (username)
+    (->> username
+         (string-append "https://api.github.com/users/")
+         (fetch)
+         (json-parse))))
+
+(define user (get-github-user "crbroughton"))
+(-> user (hash-get "login") (print))
+(-> user (hash-get "public_repos") (print))
+```
+
+Here is an example of conditionals:
+```lisp
+(load "std/macro.lisp")
+
+(define x 5)
+(print (cond
+  ((< x 0) "negative")
+  ((= x 0) "zero")
+  ((< 0 x) "positive"))) ; need to add a > operator
 ```
