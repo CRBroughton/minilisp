@@ -13,6 +13,10 @@ func loadStdLib(env *Env) {
 
 	// Load functions (factorial, sum)
 	eval(readStr(`(load "std/functions.lisp")`), env)
+
+	// Result type
+	eval(readStr(`(load "std/result.lisp")`), env)
+
 }
 
 func main() {
