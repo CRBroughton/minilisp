@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 func builtinAdd(args []*Expr) *Expr {
 	sum := 0
@@ -161,4 +164,122 @@ func builtinHashKeys(args []*Expr) *Expr {
 	}
 
 	return result
+}
+
+func builtinStringAppend(args []*Expr) *Expr {
+	var result string
+	for _, arg := range args {
+		if arg.Type != String {
+			panic("string-append: all arguments must be strings")
+		}
+		result += arg.Str
+	}
+	return makeStr(result)
+}
+
+func builtinJsonParse(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("json-parse: expects 1 argument")
+	}
+
+	if args[0].Type != String {
+		panic("json-parse: argument must be a string")
+	}
+
+	var data interface{}
+	err := json.Unmarshal([]byte(args[0].Str), &data)
+	if err != nil {
+		panic(fmt.Sprintf("json-parse: %v", err))
+	}
+
+	return jsonToExpr(data)
+}
+
+func jsonToExpr(data interface{}) *Expr {
+	switch v := data.(type) {
+	case nil:
+		return nilExpr
+
+	case bool:
+		if v {
+			return trueExpr
+		}
+		return nilExpr
+
+	case float64:
+		return makeNum(int(v))
+
+	case string:
+		return makeStr(v)
+
+	case []interface{}:
+		// JSON array → Lisp list
+		result := nilExpr
+		for i := len(v) - 1; i >= 0; i-- {
+			result = pair(jsonToExpr(v[i]), result)
+		}
+		return result
+
+	case map[string]interface{}:
+		// JSON object → Hash
+		hash := makeHash()
+		for key, val := range v {
+			hashSet(hash, key, jsonToExpr(val))
+		}
+		return hash
+
+	default:
+		panic(fmt.Sprintf("json-parse: unsupported type %T", v))
+	}
+}
+
+func builtinJsonStringify(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("json-stringify: expects 1 argument")
+	}
+
+	data := exprToJson(args[0])
+
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		panic(fmt.Sprintf("json-stringify: %v", err))
+	}
+
+	return makeStr(string(bytes))
+}
+
+func exprToJson(e *Expr) interface{} {
+	switch e.Type {
+	case Nil:
+		return nil
+
+	case Bool:
+		return e == trueExpr
+
+	case Number:
+		return e.Num
+
+	case String:
+		return e.Str
+
+	case Pair:
+		// Lisp list → JSON array
+		items := listToSlice(e)
+		result := make([]interface{}, len(items))
+		for i, item := range items {
+			result[i] = exprToJson(item)
+		}
+		return result
+
+	case Hash:
+		// Hash → JSON object
+		result := make(map[string]interface{})
+		for key, val := range e.HashTable {
+			result[key] = exprToJson(val)
+		}
+		return result
+
+	default:
+		panic(fmt.Sprintf("json-stringify: cannot convert type %v", e.Type))
+	}
 }

@@ -587,3 +587,143 @@ func TestHashFromLisp(t *testing.T) {
 		t.Error("hash-set from Lisp should work")
 	}
 }
+
+func TestJsonParseString(t *testing.T) {
+	input := `"hello"`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	if result.Type != String {
+		t.Errorf("type = %v, want String", result.Type)
+	}
+	if result.Str != "hello" {
+		t.Errorf("value = %q, want 'hello'", result.Str)
+	}
+}
+
+func TestJsonParseNumber(t *testing.T) {
+	input := `42`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	if result.Type != Number {
+		t.Errorf("type = %v, want Number", result.Type)
+	}
+	if result.Num != 42 {
+		t.Errorf("value = %d, want 42", result.Num)
+	}
+}
+
+func TestJsonParseBoolTrue(t *testing.T) {
+	input := `true`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	if result != trueExpr {
+		t.Error("true should parse to trueExpr")
+	}
+}
+
+func TestJsonParseBoolFalse(t *testing.T) {
+	input := `false`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	if result != nilExpr {
+		t.Error("false should parse to nilExpr")
+	}
+}
+
+func TestJsonParseNull(t *testing.T) {
+	input := `null`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	if result != nilExpr {
+		t.Error("null should parse to nilExpr")
+	}
+}
+
+func TestJsonParseArray(t *testing.T) {
+	input := `[1, 2, 3]`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	// Should be a list
+	items := listToSlice(result)
+	if len(items) != 3 {
+		t.Fatalf("array length = %d, want 3", len(items))
+	}
+
+	if items[0].Num != 1 || items[1].Num != 2 || items[2].Num != 3 {
+		t.Error("array values incorrect")
+	}
+}
+
+func TestJsonParseObject(t *testing.T) {
+	input := `{"name": "Alice", "age": 30}`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	if result.Type != Hash {
+		t.Fatalf("type = %v, want Hash", result.Type)
+	}
+
+	name, ok := hashGet(result, "name")
+	if !ok || name.Str != "Alice" {
+		t.Error("name should be 'Alice'")
+	}
+
+	age, ok := hashGet(result, "age")
+	if !ok || age.Num != 30 {
+		t.Error("age should be 30")
+	}
+}
+
+func TestJsonParseNestedObject(t *testing.T) {
+	input := `{"user": {"name": "Alice", "age": 30}}`
+	result := builtinJsonParse([]*Expr{makeStr(input)})
+
+	user, ok := hashGet(result, "user")
+	if !ok || user.Type != Hash {
+		t.Fatal("user should be a hash")
+	}
+
+	name, ok := hashGet(user, "name")
+	if !ok || name.Str != "Alice" {
+		t.Error("user.name should be 'Alice'")
+	}
+}
+
+func TestJsonStringifyString(t *testing.T) {
+	input := makeStr("hello")
+	result := builtinJsonStringify([]*Expr{input})
+
+	if result.Str != `"hello"` {
+		t.Errorf("got %q, want %q", result.Str, `"hello"`)
+	}
+}
+
+func TestJsonStringifyNumber(t *testing.T) {
+	input := makeNum(42)
+	result := builtinJsonStringify([]*Expr{input})
+
+	if result.Str != "42" {
+		t.Errorf("got %q, want '42'", result.Str)
+	}
+}
+
+func TestJsonStringifyHash(t *testing.T) {
+	hash := makeHash()
+	hashSet(hash, "name", makeStr("Alice"))
+	hashSet(hash, "age", makeNum(30))
+
+	result := builtinJsonStringify([]*Expr{hash})
+
+	// JSON object order isn't guaranteed, so check both possibilities
+	if result.Str != `{"name":"Alice","age":30}` && result.Str != `{"age":30,"name":"Alice"}` {
+		t.Errorf("got %q", result.Str)
+	}
+}
+
+func TestJsonStringifyList(t *testing.T) {
+	lst := list(makeNum(1), makeNum(2), makeNum(3))
+	result := builtinJsonStringify([]*Expr{lst})
+
+	if result.Str != "[1,2,3]" {
+		t.Errorf("got %q, want '[1,2,3]'", result.Str)
+	}
+}
