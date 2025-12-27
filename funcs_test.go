@@ -171,6 +171,40 @@ func TestBuiltinPairs(t *testing.T) {
 	}
 }
 
+func TestBuiltinList(t *testing.T) {
+	// Empty list
+	result := builtinList([]*Expr{})
+	if result != nilExpr {
+		t.Error("empty list should be nil")
+	}
+
+	// Single element
+	result = builtinList([]*Expr{makeNum(1)})
+	if result.Head.Num != 1 || result.Tail != nilExpr {
+		t.Error("single element list incorrect")
+	}
+
+	// Multiple elements
+	result = builtinList([]*Expr{makeNum(1), makeNum(2), makeNum(3)})
+	items := listToSlice(result)
+	if len(items) != 3 {
+		t.Fatalf("list length = %d, want 3", len(items))
+	}
+	if items[0].Num != 1 || items[1].Num != 2 || items[2].Num != 3 {
+		t.Error("list values incorrect")
+	}
+
+	// Mixed types
+	result = builtinList([]*Expr{makeStr("hello"), makeNum(42), trueExpr})
+	items = listToSlice(result)
+	if len(items) != 3 {
+		t.Fatalf("mixed list length = %d, want 3", len(items))
+	}
+	if items[0].Str != "hello" || items[1].Num != 42 || items[2] != trueExpr {
+		t.Error("mixed list values incorrect")
+	}
+}
+
 func TestBuiltinHead(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("head", makeBuiltin(builtinHead))

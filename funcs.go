@@ -52,6 +52,10 @@ func builtinEq(args []*Expr) *Expr {
 		if a.Sym == b.Sym {
 			return trueExpr
 		}
+	case String:
+		if a.Str == b.Str {
+			return trueExpr
+		}
 	case Nil:
 		return trueExpr
 	case Pair:
@@ -114,6 +118,14 @@ func builtinLt(args []*Expr) *Expr {
 
 func builtinPair(args []*Expr) *Expr {
 	return pair(args[0], args[1])
+}
+
+func builtinList(args []*Expr) *Expr {
+	result := nilExpr
+	for i := len(args) - 1; i >= 0; i-- {
+		result = pair(args[i], result)
+	}
+	return result
 }
 
 func builtinHead(args []*Expr) *Expr {

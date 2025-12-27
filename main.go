@@ -19,6 +19,7 @@ func main() {
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
 	env.Define("pair", makeBuiltin(builtinPair))
+	env.Define("list", makeBuiltin(builtinList))
 	env.Define("head", makeBuiltin(builtinHead))
 	env.Define("tail", makeBuiltin(builtinTail))
 	env.Define("null?", makeBuiltin(builtinNullP))
