@@ -6,7 +6,7 @@ for some typical functions you might want.
 
 What is currently included is:
 
-Numbers, symbols, pairs, lambdas, macros, `&rest` parameters for variadic functions, file loading so you can pull in code from other files (see below example). I've also started to
+Numbers, symbols, pairs, lambdas, macros, `&rest` parameters for variadic functions, file loading so you can pull in code from other files (see below example) as well as several type checkers (type conversion coming soon). I've also started to
 include some basic helpers for web development, such as a fetch function, basic JSON support etc.
 
 Will also create a standard lib file using Minilisp, to help prove the language can
@@ -35,6 +35,18 @@ The REPL starts with the standard library loaded (thread macros, when, cond, fac
 
 ```bash
 ./minilisp < file.lisp
+```
+
+## Type Checking
+
+MiniLisp includes type predicates for runtime type checking:
+
+```lisp
+(number? 42)         ; true
+(string? "hello")    ; true
+(symbol? 'foo)       ; true
+(list? (list 1 2))   ; true
+(bool? true)         ; true
 ```
 
 ## Examples
