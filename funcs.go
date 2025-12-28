@@ -342,3 +342,56 @@ func exprToJson(e *Expr) interface{} {
 		panic(fmt.Sprintf("json-stringify: cannot convert type %v", e.Type))
 	}
 }
+
+// Type-checkers, might split out into own file later, maybe
+
+func builtinNumberP(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("number?: expect 1 argument")
+	}
+	if args[0].Type == Number {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+func builtinStringP(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("string?: expect 1 argument")
+	}
+	if args[0].Type == String {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+func builtinSymbolP(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("symbol?: expect 1 argument")
+	}
+	if args[0].Type == Symbol {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+func builtinListP(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("list?: expect 1 argument")
+	}
+	if args[0].Type == Pair {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+func builtinBoolP(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("bool?: expect 1 argument")
+	}
+	// In MiniLisp, true is a special value, nil is also considered bool
+	if args[0] == trueExpr || args[0] == nilExpr {
+		return trueExpr
+	}
+	return nilExpr
+}

@@ -786,3 +786,158 @@ func TestJsonStringifyList(t *testing.T) {
 		t.Errorf("got %q, want '[1,2,3]'", result.Str)
 	}
 }
+
+// Type Predicate Tests
+
+func TestBuiltinNumberP(t *testing.T) {
+	tests := []struct {
+		name  string
+		input *Expr
+		want  bool
+	}{
+		{"number is number", makeNum(42), true},
+		{"zero is number", makeNum(0), true},
+		{"negative is number", makeNum(-5), true},
+		{"string is not number", makeStr("42"), false},
+		{"symbol is not number", &Expr{Type: Symbol, Sym: "foo"}, false},
+		{"nil is not number", nilExpr, false},
+		{"list is not number", list(makeNum(1)), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := builtinNumberP([]*Expr{tt.input})
+			if tt.want {
+				if result != trueExpr {
+					t.Errorf("expected true for %s", tt.name)
+				}
+			} else {
+				if result != nilExpr {
+					t.Errorf("expected nil for %s", tt.name)
+				}
+			}
+		})
+	}
+}
+
+func TestBuiltinStringP(t *testing.T) {
+	tests := []struct {
+		name  string
+		input *Expr
+		want  bool
+	}{
+		{"string is string", makeStr("hello"), true},
+		{"empty string is string", makeStr(""), true},
+		{"number is not string", makeNum(42), false},
+		{"symbol is not string", &Expr{Type: Symbol, Sym: "foo"}, false},
+		{"nil is not string", nilExpr, false},
+		{"list is not string", list(makeStr("a")), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := builtinStringP([]*Expr{tt.input})
+			if tt.want {
+				if result != trueExpr {
+					t.Errorf("expected true for %s", tt.name)
+				}
+			} else {
+				if result != nilExpr {
+					t.Errorf("expected nil for %s", tt.name)
+				}
+			}
+		})
+	}
+}
+
+func TestBuiltinSymbolP(t *testing.T) {
+	tests := []struct {
+		name  string
+		input *Expr
+		want  bool
+	}{
+		{"symbol is symbol", &Expr{Type: Symbol, Sym: "foo"}, true},
+		{"another symbol", &Expr{Type: Symbol, Sym: "bar"}, true},
+		{"string is not symbol", makeStr("foo"), false},
+		{"number is not symbol", makeNum(42), false},
+		{"nil is not symbol", nilExpr, false},
+		{"list is not symbol", list(makeNum(1)), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := builtinSymbolP([]*Expr{tt.input})
+			if tt.want {
+				if result != trueExpr {
+					t.Errorf("expected true for %s", tt.name)
+				}
+			} else {
+				if result != nilExpr {
+					t.Errorf("expected nil for %s", tt.name)
+				}
+			}
+		})
+	}
+}
+
+func TestBuiltinListP(t *testing.T) {
+	tests := []struct {
+		name  string
+		input *Expr
+		want  bool
+	}{
+		{"list is list", list(makeNum(1), makeNum(2)), true},
+		{"single element list", list(makeNum(1)), true},
+		{"pair is list", pair(makeNum(1), makeNum(2)), true},
+		{"number is not list", makeNum(42), false},
+		{"string is not list", makeStr("hello"), false},
+		{"symbol is not list", &Expr{Type: Symbol, Sym: "foo"}, false},
+		{"nil is not list", nilExpr, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := builtinListP([]*Expr{tt.input})
+			if tt.want {
+				if result != trueExpr {
+					t.Errorf("expected true for %s", tt.name)
+				}
+			} else {
+				if result != nilExpr {
+					t.Errorf("expected nil for %s", tt.name)
+				}
+			}
+		})
+	}
+}
+
+func TestBuiltinBoolP(t *testing.T) {
+	tests := []struct {
+		name  string
+		input *Expr
+		want  bool
+	}{
+		{"true is bool", trueExpr, true},
+		{"nil is bool", nilExpr, true},
+		{"number is not bool", makeNum(42), false},
+		{"zero is not bool", makeNum(0), false},
+		{"string is not bool", makeStr("true"), false},
+		{"symbol is not bool", &Expr{Type: Symbol, Sym: "true"}, false},
+		{"list is not bool", list(trueExpr), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := builtinBoolP([]*Expr{tt.input})
+			if tt.want {
+				if result != trueExpr {
+					t.Errorf("expected true for %s", tt.name)
+				}
+			} else {
+				if result != nilExpr {
+					t.Errorf("expected nil for %s", tt.name)
+				}
+			}
+		})
+	}
+}

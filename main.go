@@ -46,6 +46,12 @@ func main() {
 	env.Define("json-stringify", makeBuiltin(builtinJsonStringify))
 	env.Define("string-append", makeBuiltin(builtinStringAppend))
 
+	env.Define("number?", makeBuiltin(builtinNumberP))
+	env.Define("string?", makeBuiltin(builtinStringP))
+	env.Define("symbol?", makeBuiltin(builtinSymbolP))
+	env.Define("list?", makeBuiltin(builtinListP))
+	env.Define("bool?", makeBuiltin(builtinBoolP))
+
 	// Bootstrap defmacro
 	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacroCode), env)
