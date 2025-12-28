@@ -998,7 +998,7 @@ func TestBuiltinToStringWrongArgs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer func() {
 				if r := recover(); r == nil {
-					t.Errorf("->string with %s should panic", tt.name)
+					t.Errorf("@string with %s should panic", tt.name)
 				}
 			}()
 			builtinToString(tt.args)

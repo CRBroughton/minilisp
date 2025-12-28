@@ -88,7 +88,7 @@ Here is an example combining fetch with Result type and cond for error handling:
       ((ok? result)
         (define user (unwrap result))
         (print (string-append "User: " (hash-get user "login")))
-        (print (string-append "Repos: " (->string (hash-get user "public_repos")))))
+        (print (string-append "Repos: " (@string (hash-get user "public_repos")))))
       ((err? result)
         (print (string-append "Error: " (unwrap-err result)))))))
 

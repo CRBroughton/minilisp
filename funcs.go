@@ -398,7 +398,7 @@ func builtinBoolP(args []*Expr) *Expr {
 
 func builtinToString(args []*Expr) *Expr {
 	if len(args) != 1 {
-		panic("->string: expect 1 argument")
+		panic("@string: expect 1 argument")
 	}
 
 	val := args[0]
@@ -432,7 +432,7 @@ func builtinToString(args []*Expr) *Expr {
 
 func builtinToNumber(args []*Expr) *Expr {
 	if len(args) != 1 {
-		panic("->number: expect 1 argument")
+		panic("@number: expect 1 argument")
 	}
 
 	val := args[0]
