@@ -30,6 +30,7 @@ func main() {
 	env.Define("/", makeBuiltin(builtinDiv))
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
+	env.Define(">", makeBuiltin(builtinGt))
 	env.Define("pair", makeBuiltin(builtinPair))
 	env.Define("list", makeBuiltin(builtinList))
 	env.Define("head", makeBuiltin(builtinHead))

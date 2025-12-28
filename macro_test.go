@@ -12,6 +12,7 @@ func setupMacroTestEnv() *Env {
 	env.Define("/", makeBuiltin(builtinDiv))
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
+	env.Define(">", makeBuiltin(builtinGt))
 
 	// String operations
 	env.Define("string-append", makeBuiltin(builtinStringAppend))

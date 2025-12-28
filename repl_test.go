@@ -117,6 +117,7 @@ func setupFullEnv() *Env {
 	env.Define("/", makeBuiltin(builtinDiv))
 	env.Define("=", makeBuiltin(builtinEq))
 	env.Define("<", makeBuiltin(builtinLt))
+	env.Define(">", makeBuiltin(builtinGt))
 	env.Define("pair", makeBuiltin(builtinPair))
 	env.Define("head", makeBuiltin(builtinHead))
 	env.Define("tail", makeBuiltin(builtinTail))

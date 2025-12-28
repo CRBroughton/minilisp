@@ -153,6 +153,31 @@ func TestBuiltinLt(t *testing.T) {
 	}
 }
 
+func TestBuiltinGt(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define(">", makeBuiltin(builtinGt))
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(> 3 5)", false},
+		{"(> 5 3)", true},
+		{"(> 5 5)", false},
+		{"(> -10 0)", false},
+		{"(> 0 -10)", true},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
 func TestBuiltinPairs(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("pair", makeBuiltin(builtinPair))

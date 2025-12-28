@@ -107,10 +107,16 @@ func structuralEq(a, b *Expr) bool {
 	}
 }
 
-// TODO - implement Gt function, also
-// maybe not nil for falsey?
+// TODO -  maybe not nil for falsey?
 func builtinLt(args []*Expr) *Expr {
 	if args[0].Num < args[1].Num {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+func builtinGt(args []*Expr) *Expr {
+	if args[0].Num > args[1].Num {
 		return trueExpr
 	}
 	return nilExpr
