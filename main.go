@@ -42,7 +42,7 @@ func main() {
 	env.Define("hash-set", makeBuiltin(builtinHashSet))
 	env.Define("hash-keys", makeBuiltin(builtinHashKeys))
 	env.Define("fetch", makeBuiltin(builtinFetch))
-	env.Define("json-parse", makeBuiltin(builtinJsonParse))
+	env.Define("@json", makeBuiltin(builtinJsonParse))
 	env.Define("json-stringify", makeBuiltin(builtinJsonStringify))
 	env.Define("string-append", makeBuiltin(builtinStringAppend))
 

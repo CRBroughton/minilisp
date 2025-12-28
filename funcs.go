@@ -238,17 +238,17 @@ func builtinStringAppend(args []*Expr) *Expr {
 
 func builtinJsonParse(args []*Expr) *Expr {
 	if len(args) != 1 {
-		panic("json-parse: expects 1 argument")
+		panic("@json: expects 1 argument")
 	}
 
 	if args[0].Type != String {
-		panic("json-parse: argument must be a string")
+		panic("@json: argument must be a string")
 	}
 
 	var data interface{}
 	err := json.Unmarshal([]byte(args[0].Str), &data)
 	if err != nil {
-		panic(fmt.Sprintf("json-parse: %v", err))
+		panic(fmt.Sprintf("@json: %v", err))
 	}
 
 	return jsonToExpr(data)
@@ -288,7 +288,7 @@ func jsonToExpr(data interface{}) *Expr {
 		return hash
 
 	default:
-		panic(fmt.Sprintf("json-parse: unsupported type %T", v))
+		panic(fmt.Sprintf("@json: unsupported type %T", v))
 	}
 }
 

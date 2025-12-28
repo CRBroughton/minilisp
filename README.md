@@ -37,18 +37,6 @@ The REPL starts with the standard library loaded (thread macros, when, cond, fac
 ./minilisp < file.lisp
 ```
 
-## Type Checking
-
-MiniLisp includes type predicates for runtime type checking:
-
-```lisp
-(number? 42)         ; true
-(string? "hello")    ; true
-(symbol? 'foo)       ; true
-(list? (list 1 2))   ; true
-(bool? true)         ; true
-```
-
 ## Examples
 
 ```lisp
@@ -72,7 +60,7 @@ Here is an example of fetching data:
     (->> username
          (string-append "https://api.github.com/users/")
          (fetch)
-         (json-parse))))
+         (@json)))) ; Converts to JSON, if valid
 
 (define user (get-github-user "crbroughton"))
 (-> user (hash-get "login") (print))
@@ -92,7 +80,7 @@ Here is an example combining fetch with Result type and cond for error handling:
       (true (ok (->> username
                      (string-append "https://api.github.com/users/")
                      (fetch) ; TODO - make the fetch return a Result type
-                     (json-parse)))))))
+                     (@json)))))))
 
 (define print-user-info
   (lambda (result)
@@ -107,7 +95,7 @@ Here is an example combining fetch with Result type and cond for error handling:
 (->> "crbroughton" (get-github-user) (print-user-info))
 ```
 
-Here is an example of conditionals:
+Here is an example of conditionals. I'm using this for now instead of a match statement:
 ```lisp
 (load "std/macro.lisp")
 
@@ -116,4 +104,15 @@ Here is an example of conditionals:
   ((< x 0) "negative")
   ((= x 0) "zero")
   ((< 0 x) "positive"))) ; need to add a > operator
+```
+### Type Checking
+
+MiniLisp includes type predicates for runtime type checking:
+
+```lisp
+(number? 42)         ; true
+(string? "hello")    ; true
+(symbol? 'foo)       ; true
+(list? (list 1 2))   ; true
+(bool? true)         ; true
 ```
