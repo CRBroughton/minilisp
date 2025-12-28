@@ -395,3 +395,61 @@ func builtinBoolP(args []*Expr) *Expr {
 	}
 	return nilExpr
 }
+
+func builtinToString(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("->string: expect 1 argument")
+	}
+
+	val := args[0]
+
+	switch val.Type {
+	case Number:
+		return makeStr(fmt.Sprintf("%d", val.Num))
+
+	case String:
+		return val
+
+	case Symbol:
+		return makeStr(val.Sym)
+
+	case Nil:
+		return makeStr("nil")
+
+	case Bool:
+		if val == trueExpr {
+			return makeStr("true")
+		}
+		return makeStr("false")
+
+	case Pair:
+		return makeStr(printExpr(val))
+
+	default:
+		return makeStr(printExpr(val))
+	}
+}
+
+func builtinToNumber(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("->number: expect 1 argument")
+	}
+
+	val := args[0]
+
+	switch val.Type {
+	case Number:
+		return val
+
+	case String:
+		num := 0
+		_, err := fmt.Sscanf(val.Str, "%d", &num)
+		if err != nil {
+			panic(fmt.Sprintf("@number: cannot parse '%s' as number", val.Str))
+		}
+		return makeNum(num)
+
+	default:
+		panic(fmt.Sprintf("@number: cannot convert %s to number", val.Type))
+	}
+}

@@ -116,3 +116,20 @@ MiniLisp includes type predicates for runtime type checking:
 (list? (list 1 2))   ; true
 (bool? true)         ; true
 ```
+
+### Type Conversion
+
+MiniLisp provides type converters to convert between types:
+
+```lisp
+; Converting to string
+(@string 42)         ; "42"
+(@string true)       ; "true"
+(@string nil)        ; "nil"
+(@string 'foo)       ; "foo"
+
+; Converting to number
+(@number "42")       ; 42
+(@number "-123")     ; -123
+(@number 42)         ; 42 (identity)
+```

@@ -42,7 +42,6 @@ func main() {
 	env.Define("hash-set", makeBuiltin(builtinHashSet))
 	env.Define("hash-keys", makeBuiltin(builtinHashKeys))
 	env.Define("fetch", makeBuiltin(builtinFetch))
-	env.Define("@json", makeBuiltin(builtinJsonParse))
 	env.Define("json-stringify", makeBuiltin(builtinJsonStringify))
 	env.Define("string-append", makeBuiltin(builtinStringAppend))
 
@@ -51,6 +50,10 @@ func main() {
 	env.Define("symbol?", makeBuiltin(builtinSymbolP))
 	env.Define("list?", makeBuiltin(builtinListP))
 	env.Define("bool?", makeBuiltin(builtinBoolP))
+
+	env.Define("@json", makeBuiltin(builtinJsonParse))
+	env.Define("@string", makeBuiltin(builtinToString))
+	env.Define("@number", makeBuiltin(builtinToNumber))
 
 	// Bootstrap defmacro
 	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"

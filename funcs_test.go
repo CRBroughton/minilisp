@@ -941,3 +941,133 @@ func TestBuiltinBoolP(t *testing.T) {
 		})
 	}
 }
+
+func TestBuiltinToString(t *testing.T) {
+	tests := []struct {
+		name  string
+		input *Expr
+		want  string
+	}{
+		{"number to string", makeNum(42), "42"},
+		{"zero to string", makeNum(0), "0"},
+		{"negative number to string", makeNum(-123), "-123"},
+		{"string to string", makeStr("hello"), "hello"},
+		{"empty string to string", makeStr(""), ""},
+		{"symbol to string", &Expr{Type: Symbol, Sym: "foo"}, "foo"},
+		{"nil to string", nilExpr, "nil"},
+		{"true to string", trueExpr, "true"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := builtinToString([]*Expr{tt.input})
+			if result.Type != String {
+				t.Errorf("expected String type, got %v", result.Type)
+			}
+			if result.Str != tt.want {
+				t.Errorf("got %q, want %q", result.Str, tt.want)
+			}
+		})
+	}
+}
+
+func TestBuiltinToStringList(t *testing.T) {
+	// Test list to string conversion
+	lst := list(makeNum(1), makeNum(2), makeNum(3))
+	result := builtinToString([]*Expr{lst})
+
+	if result.Type != String {
+		t.Errorf("expected String type, got %v", result.Type)
+	}
+	// The exact format depends on printExpr, but it should be a string
+	if result.Str == "" {
+		t.Error("list should convert to non-empty string")
+	}
+}
+
+func TestBuiltinToStringWrongArgs(t *testing.T) {
+	tests := []struct {
+		name string
+		args []*Expr
+	}{
+		{"no args", []*Expr{}},
+		{"two args", []*Expr{makeNum(42), makeNum(43)}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r == nil {
+					t.Errorf("->string with %s should panic", tt.name)
+				}
+			}()
+			builtinToString(tt.args)
+		})
+	}
+}
+
+func TestBuiltinToNumber(t *testing.T) {
+	tests := []struct {
+		name  string
+		input *Expr
+		want  int
+	}{
+		{"number to number", makeNum(42), 42},
+		{"zero to number", makeNum(0), 0},
+		{"negative number to number", makeNum(-123), -123},
+		{"string number to number", makeStr("42"), 42},
+		{"string zero to number", makeStr("0"), 0},
+		{"string negative to number", makeStr("-123"), -123},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := builtinToNumber([]*Expr{tt.input})
+			if result.Type != Number {
+				t.Errorf("expected Number type, got %v", result.Type)
+			}
+			if result.Num != tt.want {
+				t.Errorf("got %d, want %d", result.Num, tt.want)
+			}
+		})
+	}
+}
+
+func TestBuiltinToNumberInvalidString(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("->number with invalid string should panic")
+		}
+	}()
+	builtinToNumber([]*Expr{makeStr("not a number")})
+}
+
+func TestBuiltinToNumberInvalidType(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("->number with invalid type should panic")
+		}
+	}()
+	builtinToNumber([]*Expr{&Expr{Type: Symbol, Sym: "foo"}})
+}
+
+func TestBuiltinToNumberWrongArgs(t *testing.T) {
+	tests := []struct {
+		name string
+		args []*Expr
+	}{
+		{"no args", []*Expr{}},
+		{"two args", []*Expr{makeNum(42), makeNum(43)}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r == nil {
+					t.Errorf("->number with %s should panic", tt.name)
+				}
+			}()
+			builtinToNumber(tt.args)
+		})
+	}
+}
