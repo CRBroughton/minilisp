@@ -39,6 +39,8 @@ The REPL starts with the standard library loaded (thread macros, when, cond, fac
 
 ## Examples
 
+You can find an example of a very basic http server in the examples folder.
+
 ```lisp
 ; Loads the included thread macros
 (load "std/macro.lisp")

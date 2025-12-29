@@ -1,4 +1,5 @@
 minilisp
 **.lisp
 !std/**.*
+!examples/**
 coverage.out
