@@ -69,3 +69,11 @@
                             (pair 'begin (tail (head clauses))))
                         (pair (pair 'cond (tail clauses))
                               nil))))))
+
+; Map function - applies a function to each element of a list
+(define map
+  (lambda (f lst)
+    (if (null? lst)
+        nil
+        (pair (f (head lst))
+              (map f (tail lst))))))
