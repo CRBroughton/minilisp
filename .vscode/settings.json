@@ -11,6 +11,7 @@
         "fetch",
         "std",
         "macros",
-        "html"
+        "html",
+        "http"
     ]
 }

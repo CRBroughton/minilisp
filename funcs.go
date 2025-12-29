@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html"
+	"strings"
 )
 
 func builtinAdd(args []*Expr) *Expr {
@@ -452,4 +454,40 @@ func builtinToNumber(args []*Expr) *Expr {
 	default:
 		panic(fmt.Sprintf("@number: cannot convert %s to number", val.Type))
 	}
+}
+
+func builtinStringJoin(args []*Expr) *Expr {
+	if len(args) != 2 {
+		panic("string-join: expects 2 arguments (list, separator)")
+	}
+
+	items := listToSlice(args[0])
+	sep := ""
+	if args[1].Type == String {
+		sep = args[1].Str
+	}
+
+	parts := make([]string, len(items))
+	for i, item := range items {
+		if item.Type == String {
+			parts[i] = item.Str
+		} else {
+			parts[i] = printExpr(item)
+		}
+	}
+
+	return makeStr(strings.Join(parts, sep))
+}
+
+func builtinHtmlEscape(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("html-escape: expects 1 argument")
+	}
+
+	if args[0].Type != String {
+		panic("html-escape: argument must be a string")
+	}
+
+	escaped := html.EscapeString(args[0].Str)
+	return makeStr(escaped)
 }

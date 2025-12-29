@@ -17,6 +17,8 @@ func loadStdLib(env *Env) {
 	// Result type
 	eval(readStr(`(load "std/result.lisp")`), env)
 
+	eval(readStr(`(load "std/html.lisp")`), env)
+
 }
 
 func main() {
@@ -54,6 +56,11 @@ func main() {
 	env.Define("@json", makeBuiltin(builtinJsonParse))
 	env.Define("@string", makeBuiltin(builtinToString))
 	env.Define("@number", makeBuiltin(builtinToNumber))
+
+	env.Define("http-server", makeBuiltin(builtinHttpServer))
+
+	env.Define("string-join", makeBuiltin(builtinStringJoin))
+	env.Define("html-escape", makeBuiltin(builtinHtmlEscape))
 
 	// Bootstrap defmacro
 	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
