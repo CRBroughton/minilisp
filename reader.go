@@ -161,3 +161,22 @@ func readStr(s string) *Expr {
 	r := &Reader{input: s}
 	return r.readExpr()
 }
+
+// Read multiple expressions from input (used for loading files and piped input)
+func readMultipleExprs(input string) []*Expr {
+	r := &Reader{input: input}
+	var exprs []*Expr
+
+	for {
+		r.skipWhitespace()
+		if r.pos >= len(r.input) {
+			break
+		}
+
+		expr := r.readExpr()
+		if expr != nilExpr || r.pos < len(r.input) {
+			exprs = append(exprs, expr)
+		}
+	}
+	return exprs
+}

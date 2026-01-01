@@ -21,6 +21,17 @@ func loadStdLib(env *Env) {
 
 }
 
+// Read all input from stdin (for piped input)
+func readAllInput() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Buffer(make([]byte, 0, 64*1024), 10*1024*1024)
+	var lines []string
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return strings.Join(lines, "\n")
+}
+
 func main() {
 	// Create global environment
 	env := NewEnv(nil)
@@ -88,38 +99,6 @@ func main() {
 			}()
 		}
 	} else {
-		// Interactive REPL
-		fmt.Println("MiniLisp - Type expressions (Ctrl+D to exit)")
-		scanner := bufio.NewScanner(os.Stdin)
-
-		for {
-			fmt.Print("> ")
-			if !scanner.Scan() {
-				break
-			}
-
-			line := scanner.Text()
-			line = strings.TrimSpace(line)
-
-			// Skip empty lines and comments
-			if line == "" || strings.HasPrefix(line, ";") {
-				continue
-			}
-
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						fmt.Printf("Error: %v\n", r)
-					}
-				}()
-
-				expr := readStr(line)
-				if expr == nilExpr {
-					return
-				}
-				result := eval(expr, env)
-				fmt.Println(printExpr(result))
-			}()
-		}
+		startREPL(env)
 	}
 }
