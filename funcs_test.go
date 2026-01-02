@@ -152,6 +152,31 @@ func TestBuiltinLt(t *testing.T) {
 		}
 	}
 }
+func TestBuiltinEqualOrLt(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("<=", makeBuiltin(builtinEqualOrLt))
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(<= 3 5)", true},
+		{"(<= 5 3)", false},
+		{"(<= 5 5)", true},
+		{"(<= -10 0)", true},
+		{"(<= 0 -10)", false},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
 
 func TestBuiltinGt(t *testing.T) {
 	env := NewEnv(nil)
@@ -166,6 +191,31 @@ func TestBuiltinGt(t *testing.T) {
 		{"(> 5 5)", false},
 		{"(> -10 0)", false},
 		{"(> 0 -10)", true},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
+func TestBuiltinEqualOrGt(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define(">=", makeBuiltin(builtinEqualOrGt))
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(>= 3 5)", false},
+		{"(>= 5 3)", true},
+		{"(>= 5 5)", true},
+		{"(>= -10 0)", false},
+		{"(>= 0 -10)", true},
 	}
 
 	for _, tt := range tests {

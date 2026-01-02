@@ -116,9 +116,21 @@ func builtinLt(args []*Expr) *Expr {
 	}
 	return nilExpr
 }
+func builtinEqualOrLt(args []*Expr) *Expr {
+	if args[0].Num <= args[1].Num {
+		return trueExpr
+	}
+	return nilExpr
+}
 
 func builtinGt(args []*Expr) *Expr {
 	if args[0].Num > args[1].Num {
+		return trueExpr
+	}
+	return nilExpr
+}
+func builtinEqualOrGt(args []*Expr) *Expr {
+	if args[0].Num >= args[1].Num {
 		return trueExpr
 	}
 	return nilExpr
