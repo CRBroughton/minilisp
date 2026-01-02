@@ -127,6 +127,33 @@ func TestBuiltinEq(t *testing.T) {
 	}
 }
 
+func TestBuiltinNotEq(t *testing.T) {
+	env := NewEnv(nil)
+	env.Define("!=", makeBuiltin(builtinNotEq))
+
+	tests := []struct {
+		input    string
+		wantTrue bool
+	}{
+		{"(!= 5 5)", false},
+		{"(!= 5 6)", true},
+		{"(!= 0 0)", false},
+		{"(!= -5 -5)", false},
+		{"(!= 10 5)", true},
+		{"(!= 10 5)", true},
+	}
+
+	for _, tt := range tests {
+		expr := readStr(tt.input)
+		result := eval(expr, env)
+
+		isTrue := result == trueExpr
+		if isTrue != tt.wantTrue {
+			t.Errorf("%s = %v, want %v", tt.input, isTrue, tt.wantTrue)
+		}
+	}
+}
+
 func TestBuiltinLt(t *testing.T) {
 	env := NewEnv(nil)
 	env.Define("<", makeBuiltin(builtinLt))

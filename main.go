@@ -42,6 +42,7 @@ func main() {
 	env.Define("*", makeBuiltin(builtinMul))
 	env.Define("/", makeBuiltin(builtinDiv))
 	env.Define("=", makeBuiltin(builtinEq))
+	env.Define("!=", makeBuiltin(builtinNotEq))
 	env.Define("<", makeBuiltin(builtinLt))
 	env.Define("<=", makeBuiltin(builtinEqualOrLt))
 	env.Define(">", makeBuiltin(builtinGt))

@@ -72,6 +72,40 @@ func builtinEq(args []*Expr) *Expr {
 	}
 	return nilExpr
 }
+func builtinNotEq(args []*Expr) *Expr {
+	a, b := args[0], args[1]
+
+	if a.Type != b.Type {
+		return nilExpr
+	}
+
+	switch a.Type {
+	case Number:
+		if a.Num != b.Num {
+			return trueExpr
+		}
+	case Symbol:
+		if a.Sym != b.Sym {
+			return trueExpr
+		}
+	case String:
+		if a.Str != b.Str {
+			return trueExpr
+		}
+	case Nil:
+		return falseExpr
+	case Pair:
+		// Structural equality for lists
+		if structuralNotEq(a, b) {
+			return trueExpr
+		}
+	default:
+		if a != b {
+			return trueExpr
+		}
+	}
+	return nilExpr
+}
 
 func structuralEq(a, b *Expr) bool {
 	// Both nil
@@ -106,6 +140,41 @@ func structuralEq(a, b *Expr) bool {
 		return a == b // trueExpr is a singleton
 	default:
 		return a == b // Pointer equality for other types
+	}
+}
+func structuralNotEq(a, b *Expr) bool {
+	// Both nil
+	if a == nilExpr && b == nilExpr {
+		return false
+	}
+
+	// One nil, one not
+	if a == nilExpr || b == nilExpr {
+		return false
+	}
+
+	// Different types
+	if a.Type != b.Type {
+		return false
+	}
+
+	// For pairs, recursively check head and tail
+	if a.Type == Pair {
+		return structuralNotEq(a.Head, b.Head) && structuralNotEq(a.Tail, b.Tail)
+	}
+
+	// For atoms, check value equality
+	switch a.Type {
+	case Number:
+		return a.Num != b.Num
+	case Symbol:
+		return a.Sym != b.Sym
+	case String:
+		return a.Str != b.Str
+	case Bool:
+		return a != b
+	default:
+		return a != b // Pointer equality for other types
 	}
 }
 
