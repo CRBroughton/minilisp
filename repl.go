@@ -130,9 +130,10 @@ func isCompleteExpr(input string) bool {
 		}
 
 		// Count parentheses
-		if ch == '(' {
+		switch ch {
+		case '(':
 			depth++
-		} else if ch == ')' {
+		case ')':
 			depth--
 		}
 	}

@@ -1125,7 +1125,7 @@ func TestBuiltinToNumberInvalidType(t *testing.T) {
 			t.Error("->number with invalid type should panic")
 		}
 	}()
-	builtinToNumber([]*Expr{&Expr{Type: Symbol, Sym: "foo"}})
+	builtinToNumber([]*Expr{{Type: Symbol, Sym: "foo"}})
 }
 
 func TestBuiltinToNumberWrongArgs(t *testing.T) {
