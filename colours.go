@@ -19,7 +19,7 @@ const (
 var useColours = true
 
 func init() {
-	if os.Getenv("NO_COLOR") != "" {
+	if os.Getenv("NO_COLOUR") != "" {
 		useColours = false
 	}
 }
