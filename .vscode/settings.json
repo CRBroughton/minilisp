@@ -12,6 +12,7 @@
         "std",
         "macros",
         "html",
-        "http"
+        "http",
+        "result"
     ]
 }
