@@ -123,3 +123,21 @@ func hashKeys(hash *Expr) []string {
 	}
 	return keys
 }
+
+// resultToExpr converts a Go Result[*Expr] to a Lisp Result hash
+// Result hash structure: (hash "type" "ok"/"err" "value" val "error" msg)
+func resultToExpr(r Result[*Expr]) *Expr {
+	if r.IsOk() {
+		// Ok result: (hash "type" "ok" "value" val)
+		hash := makeHash()
+		hashSet(hash, "type", makeStr("ok"))
+		hashSet(hash, "value", r.Unwrap())
+		return hash
+	} else {
+		// Err result: (hash "type" "err" "error" msg)
+		hash := makeHash()
+		hashSet(hash, "type", makeStr("err"))
+		hashSet(hash, "error", makeStr(r.Error().Error()))
+		return hash
+	}
+}
