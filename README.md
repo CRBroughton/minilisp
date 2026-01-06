@@ -54,35 +54,22 @@ You can find an example of a very basic http server in the examples folder.
   ((= x 0) "zero")
   ((< 0 x) "positive")))         ; "positive"
 ```
-Here is an example of fetching data:
-
-```lisp
-(define get-github-user
-  (lambda (username)
-    (->> username
-         (string-append "https://api.github.com/users/")
-         (fetch)
-         (@json)))) ; Converts to JSON, if valid
-
-(define user (get-github-user "crbroughton"))
-(-> user (hash-get "login") (print))
-(-> user (hash-get "public_repos") (print))
-```
-
 Here is an example combining fetch with Result type and cond for error handling:
 
 ```lisp
 (load "std/macro.lisp")
-(load "std/result.lisp")
 
 (define get-github-user
   (lambda (username)
     (cond
       ((= username "") (err "Username cannot be empty"))
-      (true (ok (->> username
-                     (string-append "https://api.github.com/users/")
-                     (fetch) ; TODO - make the fetch return a Result type
-                     (@json)))))))
+      (true
+        (define fetch-result
+          (fetch (hash "url" (string-append "https://api.github.com/users/" username))))
+
+        (if (ok? fetch-result)
+            (ok (-> fetch-result (unwrap) (@json)))
+            fetch-result)))))
 
 (define print-user-info
   (lambda (result)
@@ -95,7 +82,6 @@ Here is an example combining fetch with Result type and cond for error handling:
         (print (string-append "Error: " (unwrap-err result)))))))
 
 (->> "crbroughton" (get-github-user) (print-user-info))
-```
 
 Here is an example of conditionals. I'm using this for now instead of a match statement:
 ```lisp
