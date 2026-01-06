@@ -572,3 +572,156 @@ func builtinHtmlEscape(args []*Expr) *Expr {
 	escaped := html.EscapeString(args[0].Str)
 	return makeStr(escaped)
 }
+
+// Result type helpers
+
+// builtinOk creates an Ok result
+// Usage: (ok value)
+func builtinOk(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("ok: expects 1 argument (value)")
+	}
+
+	hash := makeHash()
+	hashSet(hash, "type", makeStr("ok"))
+	hashSet(hash, "value", args[0])
+	return hash
+}
+
+// builtinErr creates an Err result
+// Usage: (err error-message)
+func builtinErr(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("err: expects 1 argument (error message)")
+	}
+
+	hash := makeHash()
+	hashSet(hash, "type", makeStr("err"))
+	hashSet(hash, "error", args[0])
+	return hash
+}
+
+// builtinOkP checks if a result is Ok
+// Usage: (ok? result)
+func builtinOkP(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("ok?: expects 1 argument (result)")
+	}
+
+	if args[0].Type != Hash {
+		return nilExpr
+	}
+
+	typeVal, ok := hashGet(args[0], "type")
+	if !ok || typeVal.Type != String {
+		return nilExpr
+	}
+
+	if typeVal.Str == "ok" {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+// builtinErrP checks if a result is Err
+// Usage: (err? result)
+func builtinErrP(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("err?: expects 1 argument (result)")
+	}
+
+	if args[0].Type != Hash {
+		return nilExpr
+	}
+
+	typeVal, ok := hashGet(args[0], "type")
+	if !ok || typeVal.Type != String {
+		return nilExpr
+	}
+
+	if typeVal.Str == "err" {
+		return trueExpr
+	}
+	return nilExpr
+}
+
+// builtinUnwrap unwraps a Result value (panics on error)
+// Usage: (unwrap result)
+func builtinUnwrap(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("unwrap: expects 1 argument (result)")
+	}
+
+	if args[0].Type != Hash {
+		panic("unwrap: argument must be a hash (Result)")
+	}
+
+	typeVal, ok := hashGet(args[0], "type")
+	if !ok || typeVal.Type != String {
+		panic("unwrap: argument must be a Result hash")
+	}
+
+	if typeVal.Str == "ok" {
+		value, ok := hashGet(args[0], "value")
+		if !ok {
+			panic("unwrap: Ok result missing 'value' field")
+		}
+		return value
+	} else if typeVal.Str == "err" {
+		errMsg, ok := hashGet(args[0], "error")
+		if !ok {
+			panic("unwrap: called on Err value")
+		}
+		if errMsg.Type == String {
+			panic("unwrap: called on Err value: " + errMsg.Str)
+		}
+		panic("unwrap: called on Err value")
+	}
+
+	panic("unwrap: argument must be a Result hash")
+}
+
+// builtinUnwrapErr gets error message from Err result
+// Usage: (unwrap-err result)
+func builtinUnwrapErr(args []*Expr) *Expr {
+	if len(args) != 1 {
+		panic("unwrap-err: expects 1 argument (result)")
+	}
+
+	if args[0].Type != Hash {
+		panic("unwrap-err: argument must be a hash (Result)")
+	}
+
+	errMsg, ok := hashGet(args[0], "error")
+	if !ok {
+		return nilExpr
+	}
+	return errMsg
+}
+
+// builtinUnwrapOr unwraps a Result or returns default
+// Usage: (unwrap-or result default)
+func builtinUnwrapOr(args []*Expr) *Expr {
+	if len(args) != 2 {
+		panic("unwrap-or: expects 2 arguments (result, default)")
+	}
+
+	if args[0].Type != Hash {
+		return args[1]
+	}
+
+	typeVal, ok := hashGet(args[0], "type")
+	if !ok || typeVal.Type != String {
+		return args[1]
+	}
+
+	if typeVal.Str == "ok" {
+		value, ok := hashGet(args[0], "value")
+		if !ok {
+			return args[1]
+		}
+		return value
+	}
+
+	return args[1]
+}

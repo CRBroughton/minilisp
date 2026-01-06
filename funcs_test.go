@@ -1148,3 +1148,175 @@ func TestBuiltinToNumberWrongArgs(t *testing.T) {
 		})
 	}
 }
+
+// Result type tests
+
+func TestBuiltinOk(t *testing.T) {
+	env := setupTestEnv()
+
+	code := `(ok 42)`
+	result := eval(readStr(code), env)
+
+	if result.Type != Hash {
+		t.Fatalf("ok result type = %v, want Hash", result.Type)
+	}
+
+	typeVal, ok := hashGet(result, "type")
+	if !ok || typeVal.Str != "ok" {
+		t.Error("ok should create hash with type 'ok'")
+	}
+
+	value, ok := hashGet(result, "value")
+	if !ok || value.Type != Number || value.Num != 42 {
+		t.Error("ok should store value correctly")
+	}
+}
+
+func TestBuiltinErr(t *testing.T) {
+	env := setupTestEnv()
+
+	code := `(err "test error")`
+	result := eval(readStr(code), env)
+
+	if result.Type != Hash {
+		t.Fatalf("err result type = %v, want Hash", result.Type)
+	}
+
+	typeVal, ok := hashGet(result, "type")
+	if !ok || typeVal.Str != "err" {
+		t.Error("err should create hash with type 'err'")
+	}
+
+	errMsg, ok := hashGet(result, "error")
+	if !ok || errMsg.Type != String || errMsg.Str != "test error" {
+		t.Error("err should store error message correctly")
+	}
+}
+
+func TestBuiltinOkP(t *testing.T) {
+	env := setupTestEnv()
+
+	tests := []struct {
+		code string
+		want bool
+	}{
+		{`(ok? (ok 42))`, true},
+		{`(ok? (err "test"))`, false},
+		{`(ok? 42)`, false},
+		{`(ok? (hash "type" "ok" "value" 10))`, true},
+	}
+
+	for _, tt := range tests {
+		result := eval(readStr(tt.code), env)
+		isTrue := result == trueExpr
+
+		if isTrue != tt.want {
+			t.Errorf("%s = %v, want %v", tt.code, isTrue, tt.want)
+		}
+	}
+}
+
+func TestBuiltinErrP(t *testing.T) {
+	env := setupTestEnv()
+
+	tests := []struct {
+		code string
+		want bool
+	}{
+		{`(err? (err "test"))`, true},
+		{`(err? (ok 42))`, false},
+		{`(err? 42)`, false},
+		{`(err? (hash "type" "err" "error" "msg"))`, true},
+	}
+
+	for _, tt := range tests {
+		result := eval(readStr(tt.code), env)
+		isTrue := result == trueExpr
+
+		if isTrue != tt.want {
+			t.Errorf("%s = %v, want %v", tt.code, isTrue, tt.want)
+		}
+	}
+}
+
+func TestBuiltinUnwrap(t *testing.T) {
+	env := setupTestEnv()
+
+	// Test unwrapping Ok value
+	code := `(unwrap (ok 42))`
+	result := eval(readStr(code), env)
+
+	if result.Type != Number || result.Num != 42 {
+		t.Errorf("unwrap ok = %v, want 42", result)
+	}
+
+	// Test unwrapping Err value panics
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("unwrap err should panic")
+		}
+	}()
+
+	code = `(unwrap (err "test error"))`
+	eval(readStr(code), env)
+}
+
+func TestBuiltinUnwrapErr(t *testing.T) {
+	env := setupTestEnv()
+
+	code := `(unwrap-err (err "test error"))`
+	result := eval(readStr(code), env)
+
+	if result.Type != String || result.Str != "test error" {
+		t.Errorf("unwrap-err = %v, want 'test error'", result)
+	}
+}
+
+func TestBuiltinUnwrapOr(t *testing.T) {
+	env := setupTestEnv()
+
+	tests := []struct {
+		code string
+		want int
+	}{
+		{`(unwrap-or (ok 42) 99)`, 42},
+		{`(unwrap-or (err "test") 99)`, 99},
+	}
+
+	for _, tt := range tests {
+		result := eval(readStr(tt.code), env)
+
+		if result.Type != Number || result.Num != tt.want {
+			t.Errorf("%s = %v, want %d", tt.code, result, tt.want)
+		}
+	}
+}
+
+func TestResultChaining(t *testing.T) {
+	env := setupTestEnv()
+
+	// Test chaining Result operations
+	code := `
+		(begin
+			(define result (ok 10))
+			(if (ok? result)
+			    (ok (+ (unwrap result) 5))
+			    result))
+	`
+
+	result := eval(readStr(code), env)
+
+	if result.Type != Hash {
+		t.Fatalf("result type = %v, want Hash", result.Type)
+	}
+
+	typeVal, _ := hashGet(result, "type")
+	if typeVal.Str != "ok" {
+		t.Error("chained result should be ok")
+	}
+
+	value, _ := hashGet(result, "value")
+	if value.Type != Number || value.Num != 15 {
+		t.Errorf("chained value = %v, want 15", value)
+	}
+}
