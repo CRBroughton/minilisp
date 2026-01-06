@@ -76,6 +76,15 @@ func main() {
 	env.Define("string-join", makeBuiltin(builtinStringJoin))
 	env.Define("html-escape", makeBuiltin(builtinHtmlEscape))
 
+	// Result type helpers
+	env.Define("ok", makeBuiltin(builtinOk))
+	env.Define("err", makeBuiltin(builtinErr))
+	env.Define("ok?", makeBuiltin(builtinOkP))
+	env.Define("err?", makeBuiltin(builtinErrP))
+	env.Define("unwrap", makeBuiltin(builtinUnwrap))
+	env.Define("unwrap-err", makeBuiltin(builtinUnwrapErr))
+	env.Define("unwrap-or", makeBuiltin(builtinUnwrapOr))
+
 	// Bootstrap defmacro
 	defmacroCode := "(define defmacro (macro (name params body) (pair 'define (pair name (pair (pair 'macro (pair params (pair body nil))) nil)))))"
 	eval(readStr(defmacroCode), env)
