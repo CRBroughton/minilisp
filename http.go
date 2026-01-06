@@ -1,38 +1,128 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
+// builtinFetch performs HTTP requests and returns Result type
+// Usage: (fetch (hash "url" "..." "method" "GET" "headers" {...} "body" "..."))
 func builtinFetch(args []*Expr) *Expr {
+	// Validate arguments
 	if len(args) != 1 {
-		panic("fetch: expects 1 argument (url)")
+		return resultToExpr(Err[*Expr](
+			errors.New("fetch: expects 1 argument (request hash)")))
 	}
 
-	url := args[0]
-	if url.Type != String {
-		panic("fetch: url must be a string")
+	arg := args[0]
+	if arg.Type != Hash {
+		return resultToExpr(Err[*Expr](
+			errors.New("fetch: argument must be a hash with 'url' field")))
 	}
 
-	resp, err := http.Get(url.Str)
+	// Extract and validate URL (required)
+	urlExpr, ok := hashGet(arg, "url")
+	if !ok {
+		return resultToExpr(Err[*Expr](
+			errors.New("fetch: request hash must have 'url' field")))
+	}
+	if urlExpr.Type != String {
+		return resultToExpr(Err[*Expr](
+			errors.New("fetch: 'url' must be a string")))
+	}
+	url := urlExpr.Str
+
+	// Extract method (optional, default GET)
+	method := "GET"
+	if methodExpr, ok := hashGet(arg, "method"); ok {
+		if methodExpr.Type != String {
+			return resultToExpr(Err[*Expr](
+				errors.New("fetch: 'method' must be a string")))
+		}
+		method = strings.ToUpper(methodExpr.Str)
+	}
+
+	// Extract headers (optional)
+	headers := make(map[string]string)
+	if headersExpr, ok := hashGet(arg, "headers"); ok {
+		if headersExpr.Type != Hash {
+			return resultToExpr(Err[*Expr](
+				errors.New("fetch: 'headers' must be a hash")))
+		}
+		for key, val := range headersExpr.HashTable {
+			if val.Type == String {
+				headers[key] = val.Str
+			}
+		}
+	}
+
+	// Extract body (optional)
+	body := ""
+	if bodyExpr, ok := hashGet(arg, "body"); ok {
+		if bodyExpr.Type != String {
+			return resultToExpr(Err[*Expr](
+				errors.New("fetch: 'body' must be a string")))
+		}
+		body = bodyExpr.Str
+	}
+
+	// Perform the HTTP request and wrap in Result
+	return resultToExpr(performHTTPRequest(url, method, headers, body))
+}
+
+// performHTTPRequest does the actual HTTP work and returns Result[*Expr]
+func performHTTPRequest(url, method string, headers map[string]string, body string) Result[*Expr] {
+	// Create HTTP request
+	var req *http.Request
+	var err error
+
+	if body != "" {
+		req, err = http.NewRequest(method, url, bytes.NewBufferString(body))
+	} else {
+		req, err = http.NewRequest(method, url, nil)
+	}
+
 	if err != nil {
-		panic(fmt.Sprintf("fetch: HTTP error: %v", err))
+		return Err[*Expr](fmt.Errorf("fetch: failed to create request: %w", err))
+	}
+
+	// Set headers
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	// Set default User-Agent if not provided
+	if _, hasUA := headers["User-Agent"]; !hasUA {
+		req.Header.Set("User-Agent", "MiniLisp/1.0")
+	}
+
+	// Perform request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return Err[*Expr](fmt.Errorf("fetch: HTTP error: %w", err))
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		panic(fmt.Sprintf("fetch: HTTP %d: %s", resp.StatusCode, resp.Status))
+	// Check status code
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return Err[*Expr](
+			fmt.Errorf("fetch: HTTP %d: %s", resp.StatusCode, resp.Status))
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	// Read response body
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(fmt.Sprintf("fetch: error reading response: %v", err))
+		return Err[*Expr](fmt.Errorf("fetch: error reading response: %w", err))
 	}
 
-	return makeStr(string(body))
+	// Return Ok result with body as string
+	return Ok(makeStr(string(respBody)))
 }
 
 func builtinHttpServer(args []*Expr) *Expr {
